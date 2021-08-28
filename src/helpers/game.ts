@@ -1,7 +1,7 @@
 import { Config } from "@/types/config";
-
 import { BoardPosition } from "@/types/game";
-import { IPlayer } from "@/types/player";
+
+import { IPlayer } from "@/models/player";
 
 export const getAllPositions = ({ 
   xSize, 

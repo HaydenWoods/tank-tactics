@@ -41,7 +41,7 @@ export const startGame = async ({
 }) => {
   const game = await Game.findOneAndUpdate(
     { _id }, 
-    { status: "IN_PROGRESS" },
+    { status: GameStatus.IN_PROGRESS },
     { lean: true, new: true },
   );
 
