@@ -29,7 +29,7 @@ export const findGameByStatusAndChannelId = async ({
   const game = await findGame({ 
     channelId,
     $or: statuses.map((status) => ({ status })),
-  }, options).populate("players");
+  }, options).populate({ path: "players", populate: { path: "user" } });
 
   return game;
 };
@@ -114,7 +114,6 @@ export const addGamePlayer = async ({
   userId: IUserDocument["_id"],
 }) => {
   const player = await Player.create({ 
-    game: _id, 
     user: userId 
   });
 

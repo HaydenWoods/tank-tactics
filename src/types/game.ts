@@ -9,7 +9,6 @@ export enum GameStatus {
 export interface BoardPositionBase {
   x: number;
   y: number;
-  type: "blank" | "player";
 }
 export interface BoardPositionBlank extends BoardPositionBase {
   type: "blank";
@@ -18,4 +17,4 @@ export interface BoardPositionPlayer extends BoardPositionBase {
   type: "player";
   player: any; 
 }
-export type BoardPosition = BoardPositionBase | BoardPositionPlayer;
+export type BoardPosition = BoardPositionBlank | BoardPositionPlayer;
