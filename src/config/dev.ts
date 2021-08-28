@@ -12,7 +12,7 @@ export const config: Config = {
 
     // Players
     minimumPlayers: 1,
-    maximumPlayers: 128,
+    maximumPlayers: 96,
 
     // Health
     maxHealth: 3,
