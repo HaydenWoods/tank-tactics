@@ -10,6 +10,8 @@ import { IHistory } from "@/models/history";
 import { IPlayerDocument, Player } from "@/models/player";
 import { IUserDocument } from "@/models/user";
 
+import { getAllPositions } from "@/helpers/game";
+
 export const findGame = (
   query: FilterQuery<IGameDocument>, 
   options: QueryOptions = { lean: true }
@@ -39,19 +41,22 @@ export const startGame = async ({
 }) => {
   const game = await Game.findOneAndUpdate(
     { _id }, 
-    { status: GameStatus.IN_PROGRESS },
+    { status: "IN_PROGRESS" },
     { lean: true, new: true },
   );
 
-  console.log(_id, game)
+  let allCoordinates = getAllPositions({ 
+    xSize: config.game.xSize, 
+    ySize: config.game.ySize 
+  });
 
   game?.players.forEach(async (_id: IPlayerDocument["_id"]) => {
-    const x = random(0, config.game.xSize, false);
-    const y = random(0, config.game.ySize, false);
+    const randomCoordinateIndex = random(0, allCoordinates.length, false);
+    const randomCoordinate = allCoordinates[randomCoordinateIndex];
 
-    console.log(game?.players, _id, x, y)
+    allCoordinates.splice(randomCoordinateIndex, 1);
 
-    await Player.updateOne({ _id }, { position: { x, y } });
+    await Player.updateOne({ _id }, { position: randomCoordinate });
   });
 };
 

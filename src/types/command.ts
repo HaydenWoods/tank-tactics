@@ -2,5 +2,5 @@ import { CommandInteraction } from "discord.js";
 
 export interface ICommand {
   data: any;
-  execute: (interaction: CommandInteraction) => void;
+  execute: (interaction: CommandInteraction) => Promise<void>;
 }

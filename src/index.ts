@@ -39,7 +39,7 @@ client.on("interactionCreate", async (interaction) => {
     await commands[commandName].execute(interaction);
   } catch (error) {
     return interaction.reply({
-      content: error?.message || "Unknown error has occured",
+      content: (error as Error)?.message || "Unknown error has occured",
       ephemeral: true,
     });
   }
