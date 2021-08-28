@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "importsNotUsedAsValues": "preserve",
+    "target": "es5",
+    "module": "commonjs",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": "./",
+    "paths": {
+      "@/*": [
+        "src/*"
+      ]
+    },
+  },
+  "ts-node": {
+    "files": true
+  },
+}

@@ -1,0 +1,7 @@
+export enum GameStatus {
+  SETUP = "SETUP",
+  IN_PROGRESS = "IN_PROGRESS",
+  PAUSED = "PAUSED",
+  CANCELLED = "CANCELLED",
+  FINISHED = "FINISHED",
+}
