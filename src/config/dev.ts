@@ -2,7 +2,7 @@ import { Config } from "@/types/config";
 
 export const config: Config = {
   bot: {
-    token: "ODc4MjI1MjY3NjAzMTUyODk2.YR-FBA.YVttCjmewBO_XLd2REdRw_D91GE",
+    token: process.env.BOT_TOKEN,
     color: "#82cf61",
   },
   game: {

@@ -2,7 +2,7 @@ import { ColorResolvable } from "discord.js";
 
 export interface Config {
   bot: {
-    token: string;
+    token?: string;
     color: ColorResolvable;
   };
   game: {
