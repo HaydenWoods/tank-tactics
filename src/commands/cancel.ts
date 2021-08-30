@@ -8,9 +8,10 @@ import { addGameHistory, cancelGame, findGameByStatusAndChannelId } from "@/serv
 import { findOrCreateUser } from "@/services/user";
 
 export const cancel: ICommand = {
-  data: new SlashCommandBuilder()
-    .setName("cancel")
-    .setDescription("Cancel the current Tank Tactics game in this channel"),
+  data: {
+    "name": "cancel",
+    "description": "Cancel the current Tank Tactics game.",
+  },
   execute: async (interaction) => {
     const { channelId } = interaction;
     const discordUser = interaction.user;

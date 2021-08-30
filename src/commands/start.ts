@@ -10,9 +10,10 @@ import { addGameHistory, findGame, startGame } from "@/services/game";
 import { findOrCreateUser } from "@/services/user";
 
 export const start: ICommand = {
-  data: new SlashCommandBuilder()
-    .setName("start")
-    .setDescription("Start the current Tank Tactics game in this channel"),
+  data: {
+    "name": "start",
+    "description": "Start the current Tank Tactics game.",
+  },
   execute: async (interaction) => {
     const { channelId } = interaction;
     const discordUser = interaction.user;

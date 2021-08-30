@@ -1,4 +1,4 @@
-import { CommandInteraction } from "discord.js";
+import { ApplicationCommand, CommandInteraction } from "discord.js";
 
 export interface ICommand {
   data: any;

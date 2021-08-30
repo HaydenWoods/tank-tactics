@@ -1,8 +1,12 @@
 import { Config } from "@/types/config";
 
 export const config: Config = {
+  mongo: {
+    url: "mongodb://localhost:27017",
+  },
   bot: {
     token: process.env.BOT_TOKEN,
+    applicationId: process.env.APPLICATION_ID,
     color: "#82cf61",
   },
   game: {

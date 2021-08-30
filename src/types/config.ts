@@ -1,8 +1,12 @@
 import { ColorResolvable } from "discord.js";
 
 export interface Config {
+  mongo: {
+    url: string;
+  },
   bot: {
     token?: string;
+    applicationId?: string;
     color: ColorResolvable;
   };
   game: {

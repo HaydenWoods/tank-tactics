@@ -10,9 +10,10 @@ import { findPlayerByGameAndDiscordId } from "@/services/player";
 import { findGameByStatusAndChannelId } from "@/services/game";
 
 export const me: ICommand = {
-  data: new SlashCommandBuilder()
-    .setName("me")
-    .setDescription("me"),
+  data: {
+    "name": "me",
+    "description": "Show your player info for the current Tank Tactics game.",
+  },
   execute: async (interaction) => {
     const { channelId } = interaction;
     const discordUser = interaction.user;
@@ -31,13 +32,17 @@ export const me: ICommand = {
       gameId: game._id,
     });
 
+    if (!player) {
+      throw new Error("You do not exist in this game");
+    }
+
     const embed = new MessageEmbed()
 			.setColor(config.bot.color)
 			.setTitle(`${player.user.username}`)
       .setDescription(`
         :heart:   **${player.health}** hearts
         :compass:   **${player.range}** range
-        :gem:   **${player.points}** action points
+        :gem:   **${player.actionPoints}** action points
       `)
 
     interaction.reply({ embeds: [embed], ephemeral: true });

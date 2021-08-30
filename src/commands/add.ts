@@ -1,5 +1,3 @@
-import { SlashCommandBuilder } from "@discordjs/builders";
-
 import { config } from "@/config";
 
 import { ICommand } from "@/types/command";
@@ -11,15 +9,18 @@ import { findOrCreateUser } from "@/services/user";
 import { findPlayer } from "@/services/player";
 
 export const add: ICommand = {
-  data: new SlashCommandBuilder()
-    .setName("add")
-    .setDescription("Add a player to the current Tank Tactics game in the channel")
-    .addUserOption((option) => {
-      return option
-        .setName("player")
-        .setDescription("Player to add to the game")
-        .setRequired(true)
-    }),
+  data: {
+    "name": "add",
+    "description": "Add a new player to the Tank Tactics game.",
+    "options": [
+      {
+        "type": 6,
+        "name": "player",
+        "description": "The player to add",
+        "required": true
+      }
+    ]
+  },
   execute: async (interaction) => {
     const { channelId } = interaction;
 

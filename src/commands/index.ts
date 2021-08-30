@@ -7,6 +7,7 @@ import { cancel } from "@/commands/cancel";
 import { me } from "@/commands/me";
 import { pause } from "@/commands/pause";
 import { resume } from "@/commands/resume";
+import { shoot } from "@/commands/shoot";
 import { start } from "@/commands/start";
 
 export const commands: Record<string, ICommand> = {
@@ -17,5 +18,6 @@ export const commands: Record<string, ICommand> = {
   me,
   pause,
   resume,
+  shoot,
   start,
 };

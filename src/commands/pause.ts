@@ -8,9 +8,10 @@ import { findOrCreateUser } from "@/services/user";
 import { addGameHistory, findGame, pauseGame } from "@/services/game";
 
 export const pause: ICommand = {
-  data: new SlashCommandBuilder()
-    .setName("pause")
-    .setDescription("Pause"),
+  data: {
+    "name": "pause",
+    "description": "Pause the current Tank Tactics game.",
+  },
   execute: async (interaction) => {
     const { channelId } = interaction;
     const discordUser = interaction.user;

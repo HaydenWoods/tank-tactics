@@ -4,10 +4,10 @@ import { Client } from "discord.js";
 import { config } from "@/config";
 import { commands } from "@/commands";
 
-const MONGO_URL = "mongodb://localhost:27017";
+import { initCommands } from "@/helpers/commands";
 
 mongoose.connect(
-  MONGO_URL,
+  config.mongo.url,
   {
     useCreateIndex: true,
     useNewUrlParser: true,
@@ -23,6 +23,8 @@ const client = new Client({
   intents: ["GUILDS", "GUILD_MESSAGES", "DIRECT_MESSAGES"],
   partials: ["CHANNEL"],
 });
+
+initCommands();
 
 client.once("ready", () => {
   console.log("Tank Tactics has started");

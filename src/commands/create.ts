@@ -10,9 +10,10 @@ import { addGameHistory, findGameByStatusAndChannelId } from "@/services/game";
 import { findOrCreateUser } from "@/services/user";
 
 export const create: ICommand = {
-  data: new SlashCommandBuilder()
-    .setName("create")
-    .setDescription("Create a Tank Tactics game in this channel"),
+  data: {
+    "name": "create",
+    "description": "Create a new Tank Tactics game.",
+  },
   execute: async (interaction) => {
     const { guildId, channelId } = interaction;
     const discordUser = interaction.user;

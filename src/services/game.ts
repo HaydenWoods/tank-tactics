@@ -14,7 +14,7 @@ import { getAllPositions } from "@/helpers/game";
 
 export const findGame = (
   query: FilterQuery<IGameDocument>, 
-  options: QueryOptions = { lean: true }
+  options?: QueryOptions,
 ) => {
   return Game.findOne(query, null, options);
 };
@@ -114,7 +114,8 @@ export const addGamePlayer = async ({
   userId: IUserDocument["_id"],
 }) => {
   const player = await Player.create({ 
-    user: userId 
+    user: userId,
+    game: _id,
   });
 
   await Game.updateOne(

@@ -8,9 +8,10 @@ import { addGameHistory, findGame, resumeGame } from "@/services/game";
 import { findOrCreateUser } from "@/services/user";
 
 export const resume: ICommand = {
-  data: new SlashCommandBuilder()
-    .setName("resume")
-    .setDescription("Resume"),
+  data: {
+    "name": "resume",
+    "description": "Resume the current Tank Tactics game.",
+  },
   execute: async (interaction) => {
     const { channelId } = interaction;
     const discordUser = interaction.user;

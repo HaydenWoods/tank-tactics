@@ -13,9 +13,10 @@ import { Player } from "@/models/player";
 import { User } from "@/models/user";
 
 export const board: ICommand = {
-  data: new SlashCommandBuilder()
-    .setName("board")
-    .setDescription("board"),
+  data: {
+    "name": "board",
+    "description": "Show the current board for the Tank Tactics game.",
+  },
   execute: async (interaction) => {
     const { channelId } = interaction;
 
@@ -67,7 +68,7 @@ export const board: ICommand = {
           message += `:${emoji}:`;
 
           if (player instanceof Player && player.user instanceof User) {
-            boardPositionFields.push({ name: player.user.username, value: emoji, inline: true });
+            boardPositionFields.push({ name: `:${emoji}:`, value: `${player.user.username}`, inline: true });
           }
           break;
       }
