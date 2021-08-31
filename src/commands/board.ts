@@ -1,5 +1,4 @@
 import { EmbedField, MessageEmbed } from "discord.js";
-import { SlashCommandBuilder } from "@discordjs/builders";
 
 import { config } from "@/config";
 
@@ -23,7 +22,7 @@ export const board: ICommand = {
     const game = await findGameByStatusAndChannelId({
       channelId,
       statuses: [GameStatus.IN_PROGRESS],
-    });;
+    });
 
     if (!game) {
       throw new Error("Game does not exist");

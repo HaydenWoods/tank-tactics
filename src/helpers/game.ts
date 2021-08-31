@@ -16,8 +16,8 @@ export const getAllPositions = ({
 }) => {
   const allPositions: IPlayer["position"][] = [];
 
-  for (let y = 0; y <= ySize; y++) {
-    for (let x = 0; x <= xSize; x++) {
+  for (let y = 1; y <= ySize; y++) {
+    for (let x = 1; x <= xSize; x++) {
       allPositions.push({ x, y });
     }
   }

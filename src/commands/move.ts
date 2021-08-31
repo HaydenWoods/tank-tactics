@@ -1,25 +1,43 @@
 import { GameStatus } from "@/types/game";
 import { ICommand } from "@/types/command";
+import { Direction } from "@/types/player";
 
-import { findGame } from "@/services/game";
-import { findPlayerByGameAndDiscordId } from "@/services/player";
+import { findGameByStatusAndChannelId } from "@/services/game";
+import { findPlayerByGameAndDiscordId, movePlayerDirection } from "@/services/player";
 
-export const shoot: ICommand = {
+export const move: ICommand = {
   data: {
     "name": "move",
     "description": "Move your player in the current Tank Tactics game.",
     "options": [
       {
-        "type": 4,
-        "name": "x",
-        "description": "The x position to move to",
+        "type": 3,
+        "name": "direction",
+        "description": "The direction to move",
+        "choices": [
+          {
+            "name": "up",
+            "value": "up"
+          },
+          {
+            "name": "down",
+            "value": "down"
+          },
+          {
+            "name": "left",
+            "value": "left"
+          },
+          {
+            "name": "right",
+            "value": "right"
+          }
+        ],
         "required": true
       },
       {
         "type": 4,
-        "name": "y",
-        "description": "The y position to move to",
-        "required": true
+        "name": "amount",
+        "description": "The amount in that direction to move"
       }
     ]
   },
@@ -27,10 +45,12 @@ export const shoot: ICommand = {
     const { channelId } = interaction;
 
     const actionDiscordUser = interaction.user;
+    const direction = interaction.options.get("direction")?.value as Direction;
+    const amount = (interaction.options.get("amount")?.value || 1) as number;
 
-    const game = await findGame({ 
-      channelId, 
-      status: GameStatus.IN_PROGRESS 
+    const game = await findGameByStatusAndChannelId({
+      channelId,
+      statuses: [GameStatus.IN_PROGRESS],
     });
 
     if (!game) {
@@ -46,8 +66,13 @@ export const shoot: ICommand = {
       throw new Error("You do not exist within this game");
     }
 
-    // await shootPlayer({ actionPlayer, targetPlayer });
+    await movePlayerDirection({ 
+      actionPlayer, 
+      game, 
+      direction, 
+      amount 
+    });
     
-    // await interaction.reply(`${actionPlayer.user.username} has shot ${targetPlayer.user.username}`);
+    await interaction.reply(`${actionPlayer.user.username} has moved ${direction} ${amount} times`);
   },
 };

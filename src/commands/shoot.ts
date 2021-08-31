@@ -1,5 +1,6 @@
 import { GameStatus } from "@/types/game";
 import { ICommand } from "@/types/command";
+import { PlayerStatus } from "@/types/player";
 
 import { findGame } from "@/services/game";
 import { findPlayerByGameAndDiscordId, shootPlayer } from "@/services/player";
@@ -14,7 +15,13 @@ export const shoot: ICommand = {
         "name": "player",
         "description": "The player to shoot",
         "required": true
-      }
+      },
+      {
+        "type": 4,
+        "name": "amount",
+        "description": "The amount of times to shoot",
+        "required": false
+      },
     ]
   },
   execute: async (interaction) => {
@@ -22,6 +29,7 @@ export const shoot: ICommand = {
 
     const actionDiscordUser = interaction.user;
     const targetDiscordUser = interaction.options.get("player")?.user;
+    const amount = interaction.options.get("amount")?.value as number;
 
     if (!targetDiscordUser) {
       throw new Error("No target player given");
@@ -36,7 +44,7 @@ export const shoot: ICommand = {
       throw new Error("Game in setup doesn't exist in this channel");
     }
 
-    const actionPlayer = await findPlayerByGameAndDiscordId({
+    let actionPlayer = await findPlayerByGameAndDiscordId({
       gameId: game._id,
       discordId: actionDiscordUser.id,
     });
@@ -45,7 +53,7 @@ export const shoot: ICommand = {
       throw new Error("You do not exist within this game");
     }
 
-    const targetPlayer = await findPlayerByGameAndDiscordId({
+    let targetPlayer = await findPlayerByGameAndDiscordId({
       gameId: game._id,
       discordId: targetDiscordUser.id,
     });
@@ -54,8 +62,18 @@ export const shoot: ICommand = {
       throw new Error("Target player does not exist within this game");
     }
 
-    await shootPlayer({ actionPlayer, targetPlayer });
+    const { 
+      actualAmount, 
+      targetPlayerIsDead 
+    } = await shootPlayer({ actionPlayer, targetPlayer, amount });
+
+    console.log(actualAmount);
     
-    await interaction.reply(`${actionPlayer.user.username} has shot ${targetPlayer.user.username}`);
+    await interaction.reply(`${actionPlayer.user.username} has shot ${targetPlayer.user.username} ${actualAmount > 1 ? `${actualAmount} times` : ""}`);
+
+    if (targetPlayerIsDead) {
+      await interaction.followUp(`${targetPlayer.user.username} has died`);
+      await interaction.followUp(`${actionPlayer.user.username} has been awarded all of ${targetPlayer.user.username}'s action points`);
+    }
   },
 };

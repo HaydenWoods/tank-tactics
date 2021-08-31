@@ -86,6 +86,13 @@ asynckit@^0.4.0:
   resolved "https://registry.npmjs.org/asynckit/-/asynckit-0.4.0.tgz"
   integrity sha1-x57Zf380y48robyXkLzDZkdLS3k=
 
+axios@^0.21.0:
+  version "0.21.1"
+  resolved "https://registry.yarnpkg.com/axios/-/axios-0.21.1.tgz#22563481962f4d6bde9a76d516ef0e5d3c09b2b8"
+  integrity sha512-dKQiRHxGD9PPRIUNIWvZhPTPpl1rf/OxTYKsqKUDjBwYylTvV7SjSHJb9ratfyzM6wCdLCOYLzs73qpg5c4iGA==
+  dependencies:
+    follow-redirects "^1.10.0"
+
 bl@^2.2.1:
   version "2.2.1"
   resolved "https://registry.npmjs.org/bl/-/bl-2.2.1.tgz"
@@ -143,6 +150,13 @@ discord-api-types@^0.22.0:
   resolved "https://registry.npmjs.org/discord-api-types/-/discord-api-types-0.22.0.tgz"
   integrity sha512-l8yD/2zRbZItUQpy7ZxBJwaLX/Bs2TGaCthRppk8Sw24LOIWg12t9JEreezPoYD0SQcC2htNNo27kYEpYW/Srg==
 
+discord-slash-commands-client@^1.2.1:
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/discord-slash-commands-client/-/discord-slash-commands-client-1.2.1.tgz#37431943b45a08b5cf271269a1470935f7d98060"
+  integrity sha512-cojKQoOzi+fEqHZyEBhXJNyhqSC0VV2Onn9aCn6YdH0UWePVjXIL9Cf3sceLz41gHaDZPVqjPnRUxYsxUr2Kbw==
+  dependencies:
+    axios "^0.21.0"
+
 discord.js@^13.1.0:
   version "13.1.0"
   resolved "https://registry.npmjs.org/discord.js/-/discord.js-13.1.0.tgz"
@@ -163,6 +177,11 @@ dot-prop@^6.0.1:
   integrity sha512-tE7ztYzXHIeyvc7N+hR3oi7FIbf/NIjVP9hmAt3yMXzrQ072/fpjGLx2GxNxGxUl5V73MEqYzioOMoVhGMJ5cA==
   dependencies:
     is-obj "^2.0.0"
+
+follow-redirects@^1.10.0:
+  version "1.14.2"
+  resolved "https://registry.yarnpkg.com/follow-redirects/-/follow-redirects-1.14.2.tgz#cecb825047c00f5e66b142f90fed4f515dec789b"
+  integrity sha512-yLR6WaE2lbF0x4K2qE2p9PEXKLDjUjnR/xmjS3wHAYxtlsI9MLLBJUZirAHKzUZDGLxje7w/cXR49WOUo4rbsA==
 
 inherits@~2.0.3:
   version "2.0.4"

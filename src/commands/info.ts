@@ -5,14 +5,28 @@ import { findPlayerByGameAndDiscordId, getPlayerInfo } from "@/services/player";
 import { findGame } from "@/services/game";
 import { buildPlayerInfoEmbed } from "@/helpers/messages";
 
-export const me: ICommand = {
+export const info: ICommand = {
   data: {
-    "name": "me",
-    "description": "Show your player info for the current Tank Tactics game.",
+    "name": "info",
+    "description": "Show a player's info in the current Tank Tactics game.",
+    "options": [
+      {
+        "type": 6,
+        "name": "player",
+        "description": "The player whos info to display",
+        "required": true
+      },
+    ],
   },
   execute: async (interaction) => {
     const { channelId } = interaction;
-    const discordUser = interaction.user;
+
+    const actionDiscordUser = interaction.user;
+    const targetDiscordUser = interaction.options.get("player")?.user;
+
+    if (!targetDiscordUser) {
+      throw new Error("No target player given");
+    }
 
     const game = await findGame({ 
       channelId, 
@@ -24,7 +38,7 @@ export const me: ICommand = {
     }
     
     const actionPlayer = await findPlayerByGameAndDiscordId({ 
-      discordId: discordUser.id,
+      discordId: actionDiscordUser.id,
       gameId: game._id,
     });
 
@@ -32,13 +46,22 @@ export const me: ICommand = {
       throw new Error("You do not exist in this game");
     }
 
+    const targetPlayer = await findPlayerByGameAndDiscordId({ 
+      discordId: targetDiscordUser.id,
+      gameId: game._id,
+    });
+
+    if (!targetPlayer) {
+      throw new Error("Target player does not exist in this game");
+    }
+
     const playerInfo = getPlayerInfo({ 
-      actionPlayer, 
-      targetPlayer: actionPlayer 
+      actionPlayer,
+      targetPlayer,
     });
 
     const embed = buildPlayerInfoEmbed({ 
-      player: actionPlayer, 
+      player: targetPlayer, 
       playerInfo 
     });
 
