@@ -22,7 +22,6 @@ export const config: Config = {
     maximumPlayers: 96,
 
     // Health
-    maxHealth: 3,
     defaultHealth: 3,
 
     // Range

@@ -1,9 +1,9 @@
 export enum GameStatus {
-  SETUP = "SETUP",
-  IN_PROGRESS = "IN_PROGRESS",
-  PAUSED = "PAUSED",
-  CANCELLED = "CANCELLED",
-  FINISHED = "FINISHED",
+  SETUP = "setup",
+  IN_PROGRESS = "inProgress",
+  PAUSED = "paused",
+  CANCELLED = "cancelled",
+  FINISHED = "finished",
 }
 
 export interface BoardPositionBase {

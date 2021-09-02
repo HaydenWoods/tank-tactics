@@ -4,6 +4,7 @@ import { add } from "@/commands/add";
 import { board } from "@/commands/board";
 import { cancel } from "@/commands/cancel";
 import { create } from "@/commands/create";
+import { give } from "@/commands/give";
 import { help } from "@/commands/help";
 import { info } from "@/commands/info";
 import { me } from "@/commands/me";
@@ -19,6 +20,7 @@ export const commands: Record<string, ICommand> = {
   board,
   cancel,
   create,
+  give,
   help,
   info,
   me,

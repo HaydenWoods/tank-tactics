@@ -2,12 +2,12 @@ import { FilterQuery, QueryOptions } from "mongoose";
 
 import { config } from "@/config";
 
-import { Direction, PlayerInfo, PlayerStatus } from "@/types/player";
+import { Direction, Items, PlayerInfo, PlayerStatus } from "@/types/player";
 
 import { IGameDocument } from "@/models/game";
-import { IPlayerDocument, Player } from "@/models/player";
+import { IPlayer, IPlayerDocument, Player } from "@/models/player";
 import { User, IUserDocument } from "@/models/user";
-import { isPlayerInRange } from "@/helpers/player";
+import { doesPlayerHaveItem, isPlayerAlive, isPlayerInRange } from "@/helpers/player";
 import { positionMatch } from "@/helpers/game";
 
 export const findPlayer = (
@@ -51,23 +51,12 @@ export const shootPlayer = async ({
   targetPlayer: IPlayerDocument;
   amount?: number;
 }) => {
-  // Target player checks
-  if (targetPlayer.status === PlayerStatus.DEAD) {
-    throw new Error("Target player is already dead");
+  if (!isPlayerAlive({ player: targetPlayer })) {
+    throw new Error("Target player is dead or doesn't exist in the game");
   }
-  if (targetPlayer.status === PlayerStatus.REMOVED) {
-    throw new Error("Target player has left the game");
+  if (!isPlayerAlive({ player: actionPlayer })) {
+    throw new Error("You are dead or don't exist in the game");
   }
-
-  // Action player checks
-  if (actionPlayer.status === PlayerStatus.DEAD) {
-    throw new Error("You are dead");
-  }
-  if (actionPlayer.status === PlayerStatus.REMOVED) {
-    throw new Error("You have left the game");
-  }
-
-  // General checks
   if (!isPlayerInRange({ actionPlayer, targetPlayer })) {
     throw new Error("Target player is not in range");
   }
@@ -115,12 +104,8 @@ export const movePlayerDirection = async ({
   direction: Direction;
   amount?: number;
 }) => {
-  // Action player checks
-  if (actionPlayer.status === PlayerStatus.DEAD) {
-    throw new Error("You are dead");
-  }
-  if (actionPlayer.status === PlayerStatus.REMOVED) {
-    throw new Error("You have left the game");
+  if (!isPlayerAlive({ player: actionPlayer })) {
+    throw new Error("You are dead or don't exist in the game");
   }
 
   const actualAmount = amount || 1;
@@ -187,4 +172,41 @@ export const getPlayerInfo = ({
   ];
 
   return playerInfo;
+};
+
+export const givePlayerActionPoints = async ({
+  actionPlayer,
+  targetPlayer,
+  amount,
+}: {
+  actionPlayer: IPlayerDocument;
+  targetPlayer: IPlayerDocument;
+  amount: number;
+}) => {
+  if (!isPlayerAlive({ player: targetPlayer })) {
+    throw new Error("Target player is dead or doesn't exist in the game");
+  }
+  if (!isPlayerAlive({ player: actionPlayer })) {
+    throw new Error("You are dead or don't exist in the game");
+  }
+  if (!isPlayerInRange({ actionPlayer, targetPlayer })) {
+    throw new Error("Target player is not in range");
+  }
+  if (actionPlayer._id.toString() === targetPlayer._id.toString()) {
+    throw new Error("You can't give to yourself");
+  } 
+  if (actionPlayer.actionPoints < amount) {
+    throw new Error(`You do not have enough action points to give`);
+  }
+
+  const actionPlayerActionPoints = actionPlayer.actionPoints - amount;
+  const targetPlayerActionPoints = targetPlayer.actionPoints + amount;
+
+  await actionPlayer.updateOne({
+    actionPoints: actionPlayerActionPoints,
+  });
+
+  await targetPlayer.updateOne({
+    actionPoints: targetPlayerActionPoints,
+  });
 };

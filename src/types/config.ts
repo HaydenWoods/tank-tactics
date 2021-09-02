@@ -22,7 +22,6 @@ export interface Config {
     maximumPlayers: number;
 
     // Health
-    maxHealth: number;
     defaultHealth: number;
 
     // Range

@@ -1,7 +1,7 @@
 export enum PlayerStatus {
-  ALIVE = "ALIVE",
-  DEAD = "DEAD",
-  REMOVED = "REMOVED",
+  ALIVE = "alive",
+  DEAD = "dead",
+  REMOVED = "removed",
 }
 
 export enum Direction {
@@ -10,6 +10,11 @@ export enum Direction {
   LEFT = "left",
   RIGHT = "right",
 } 
+
+export enum Items {
+  ACTION_POINTS = "actionPoints",
+  HEALTH = "health",
+}
 
 export type PlayerInfo = {
   title: string;

@@ -1,4 +1,5 @@
-import { IPlayer } from "@/models/player";
+import { IPlayer, IPlayerDocument } from "@/models/player";
+import { Items, PlayerStatus } from "@/types/player";
 
 export const isPlayerInRange = ({ 
   actionPlayer, 
@@ -15,4 +16,38 @@ export const isPlayerInRange = ({
   const isPlayerInRange = (range >= xDistance) && (range >= yDistance);
 
   return isPlayerInRange;
+};
+
+export const isPlayerAlive = ({
+  player,
+}: {
+  player: IPlayer;
+}) => {
+  if (player.status !== PlayerStatus.ALIVE) {
+    return false;
+  }
+  return true;
+};
+
+export const doesPlayerHaveItem = ({
+  player, 
+  item,
+  amount,
+}: {
+  player: IPlayer;
+  item: Items;
+  amount: number;
+}) => {
+  const items = player[item];
+
+  console.log(player, items, amount);
+
+  if (!items) {
+    return false;
+  }
+  if (items < amount) {
+    return false;
+  }
+
+  return true;
 };
