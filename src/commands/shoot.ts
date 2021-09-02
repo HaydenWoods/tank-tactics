@@ -1,8 +1,7 @@
-import { GameStatus } from "@/types/game";
 import { ICommand } from "@/types/command";
-import { PlayerStatus } from "@/types/player";
+import { GameStatus } from "@/types/game";
 
-import { findGame } from "@/services/game";
+import { findGameByStatusAndChannelId } from "@/services/game";
 import { findPlayerByGameAndDiscordId, shootPlayer } from "@/services/player";
 
 export const shoot: ICommand = {
@@ -24,10 +23,17 @@ export const shoot: ICommand = {
       },
     ]
   },
-  execute: async (interaction) => {
-    const { channelId } = interaction;
-
-    const actionDiscordUser = interaction.user;
+  execute: async (interaction, { game, actionPlayer }) => {
+    if (!game) {
+      throw new Error("Game in setup doesn't exist in this channel");
+    }
+    if (game.status !== GameStatus.IN_PROGRESS) {
+      throw new Error("Game is not in progress");
+    }
+    if (!actionPlayer) {
+      throw new Error("You do not exist within this game");
+    }
+    
     const targetDiscordUser = interaction.options.get("player")?.user;
     const amount = interaction.options.get("amount")?.value as number;
 
@@ -35,25 +41,7 @@ export const shoot: ICommand = {
       throw new Error("No target player given");
     }
 
-    const game = await findGame({ 
-      channelId, 
-      status: GameStatus.IN_PROGRESS 
-    });
-
-    if (!game) {
-      throw new Error("Game in setup doesn't exist in this channel");
-    }
-
-    let actionPlayer = await findPlayerByGameAndDiscordId({
-      gameId: game._id,
-      discordId: actionDiscordUser.id,
-    });
-
-    if (!actionPlayer) {
-      throw new Error("You do not exist within this game");
-    }
-
-    let targetPlayer = await findPlayerByGameAndDiscordId({
+    const targetPlayer = await findPlayerByGameAndDiscordId({
       gameId: game._id,
       discordId: targetDiscordUser.id,
     });
@@ -66,8 +54,6 @@ export const shoot: ICommand = {
       actualAmount, 
       targetPlayerIsDead 
     } = await shootPlayer({ actionPlayer, targetPlayer, amount });
-
-    console.log(actualAmount);
     
     await interaction.reply(`${actionPlayer.user.username} has shot ${targetPlayer.user.username} ${actualAmount > 1 ? `${actualAmount} times` : ""}`);
 

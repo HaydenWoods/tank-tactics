@@ -16,16 +16,12 @@ export const board: ICommand = {
     "name": "board",
     "description": "Show the current board for the Tank Tactics game.",
   },
-  execute: async (interaction) => {
-    const { channelId } = interaction;
-
-    const game = await findGameByStatusAndChannelId({
-      channelId,
-      statuses: [GameStatus.IN_PROGRESS],
-    });
-
+  execute: async (interaction, { game }) => {
     if (!game) {
       throw new Error("Game does not exist");
+    }
+    if (game.status !== GameStatus.IN_PROGRESS) {
+      throw new Error("Game is not in progress");
     }
 
     const { players } = game;
@@ -52,7 +48,6 @@ export const board: ICommand = {
     let boardPositionMessage = "";
     let boardPositionFields: EmbedField[] = [];
     boardPositions.forEach((boardPosition) => {
-
       let message = "";
 
       switch (boardPosition.type) {

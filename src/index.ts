@@ -4,6 +4,12 @@ import { Client } from "discord.js";
 import { config } from "@/config";
 import { commands } from "@/commands";
 
+import { createOrUpdateUser } from "@/services/user";
+import { findGameByStatusAndChannelId } from "@/services/game";
+
+import { findPlayerByGameAndDiscordId } from "@/services/player";
+import { GameStatus } from "./types/game";
+
 mongoose.connect(
   config.mongo.url,
   {
@@ -34,7 +40,30 @@ client.on("interactionCreate", async (interaction) => {
   if (!Object.keys(commands).includes(commandName)) return;
 
   try {
-    await commands[commandName].execute(interaction);
+    const { channelId } = interaction;
+
+    const game = await findGameByStatusAndChannelId({
+      channelId,
+      statuses: [
+        GameStatus.IN_PROGRESS, 
+        GameStatus.SETUP, 
+        GameStatus.PAUSED
+      ],
+    });
+
+    const actionDiscordUser = interaction.user;
+    const actionUser = await createOrUpdateUser({ discordUser: actionDiscordUser });
+
+    const actionPlayer = game ? await findPlayerByGameAndDiscordId({
+      gameId: game._id,
+      discordId: actionDiscordUser.id,
+    }) : null;
+
+    await commands[commandName].execute(interaction, {
+      game,
+      actionUser,
+      actionPlayer,
+    });
   } catch (error) {
     return interaction.reply({
       content: (error as Error)?.message || "Unknown error has occured",

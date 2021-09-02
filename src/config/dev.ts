@@ -9,6 +9,9 @@ export const config: Config = {
     applicationId: process.env.APPLICATION_ID,
     color: "#82cf61",
   },
+  commands: {
+    guildId: process.env.GUILD_ID,
+  },
   game: {
     // Board
     xSize: 12,

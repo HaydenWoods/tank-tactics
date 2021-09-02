@@ -1,7 +1,7 @@
 export enum PlayerStatus {
   ALIVE = "ALIVE",
   DEAD = "DEAD",
-  LEFT = "LEFT",
+  REMOVED = "REMOVED",
 }
 
 export enum Direction {

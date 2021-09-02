@@ -4,9 +4,9 @@ import { random } from "lodash";
 import { config } from "@/config";
 
 import { GameStatus } from "@/types/game";
+import { PlayerStatus } from "@/types/player";
 
 import { Game, IGameDocument } from "@/models/game";
-import { IHistory } from "@/models/history";
 import { IPlayerDocument, Player } from "@/models/player";
 import { IUserDocument } from "@/models/user";
 
@@ -25,25 +25,46 @@ export const findGameByStatusAndChannelId = async ({
 }: { 
   channelId: IGameDocument["channelId"]; 
   statuses: GameStatus[];
-}, options?: QueryOptions) => {
+}) => {
   const game = await findGame({ 
     channelId,
     $or: statuses.map((status) => ({ status })),
-  }, options).populate({ path: "players", populate: { path: "user" } });
+  }).populate({ 
+    path: "players", 
+    populate: { 
+      path: "user" 
+    },
+  });
+
+  return game;
+};
+
+export const createGame = async ({ 
+  guildId,
+  channelId,
+  user,
+}: {
+  guildId: IGameDocument["guildId"];
+  channelId: IGameDocument["channelId"];
+  user: IUserDocument;
+}) => {
+  const game = await Game.create({
+    guildId,
+    channelId,
+    user,
+  });
 
   return game;
 };
 
 export const startGame = async ({ 
-  _id,
+  game,
 }: { 
-  _id: IGameDocument["_id"];
+  game: IGameDocument;
 }) => {
-  const game = await Game.findOneAndUpdate(
-    { _id }, 
-    { status: GameStatus.IN_PROGRESS },
-    { lean: true, new: true },
-  );
+  await game.updateOne({ 
+    status: GameStatus.IN_PROGRESS 
+  });
 
   let allCoordinates = getAllPositions({ 
     xSize: config.game.xSize, 
@@ -61,67 +82,70 @@ export const startGame = async ({
 };
 
 export const cancelGame = async ({ 
-  _id,
+  game,
 }: { 
-  _id: IGameDocument["_id"];
+  game: IGameDocument;
 }) => {
-  await Game.updateOne(
-    { _id }, 
-    { status: GameStatus.CANCELLED },
-  );
+  await game.updateOne({ 
+    status: GameStatus.CANCELLED 
+  });
 };
 
 export const pauseGame = async ({
-  _id,
+  game,
 }: {
-  _id: IGameDocument["_id"];
+  game: IGameDocument;
 }) => {
-  await Game.updateOne(
-    { _id },
-    { status: GameStatus.PAUSED },
-  );
+  await game.updateOne({ 
+    status: GameStatus.PAUSED
+  });
 };
 
 export const resumeGame = async ({
-  _id,
+  game,
 }: {
-  _id: IGameDocument["_id"];
+  game: IGameDocument;
 }) => {
-  await Game.updateOne(
-    { _id },
-    { status: GameStatus.IN_PROGRESS },
-  );
-};
-
-export const addGameHistory = async ({
-  _id,
-  history,
-}: {
-  _id: IGameDocument["_id"];
-  history: IHistory;
-}) => {
-  await Game.updateOne(
-    { _id },
-    { $push: { histories: history } },
-  );
+  await game.updateOne({ 
+    status: GameStatus.IN_PROGRESS 
+  });
 };
 
 export const addGamePlayer = async ({ 
-  _id, 
-  userId, 
+  game,
+  user,
 }: { 
-  _id: IGameDocument["_id"], 
-  userId: IUserDocument["_id"],
+  game: IGameDocument, 
+  user: IUserDocument,
 }) => {
   const player = await Player.create({ 
-    user: userId,
-    game: _id,
+    user: user._id,
+    game: game._id,
   });
 
-  await Game.updateOne(
-    { _id }, 
-    { $push: { players: player } },
-  );
+  await game.updateOne({ 
+    $push: { 
+      players: player,
+    },
+  });
 
   return player;
+};
+
+export const removeGamePlayer = async ({ 
+  game,
+  player,
+}: { 
+  game: IGameDocument, 
+  player: IPlayerDocument,
+}) => {
+  await game.updateOne({ 
+    $pull: { 
+      players: player._id,
+    },
+  });
+
+  await player.updateOne({
+    status: PlayerStatus.REMOVED
+  });
 };

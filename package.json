@@ -6,7 +6,8 @@
   "license": "MIT",
   "scripts": {
     "start": "ts-node-dev --respawn -r tsconfig-paths/register ./src/index.ts",
-    "update:commands": "ts-node -r tsconfig-paths/register ./src/scripts/updateCommands.ts"
+    "update:commands": "ts-node -r tsconfig-paths/register ./src/scripts/updateCommands.ts",
+    "delete:commands": "ts-node -r tsconfig-paths/register ./src/scripts/deleteCommands.ts"
   },
   "dependencies": {
     "@discordjs/builders": "^0.5.0",

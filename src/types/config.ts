@@ -9,6 +9,9 @@ export interface Config {
     applicationId?: string;
     color: ColorResolvable;
   };
+  commands: {
+    guildId?: string;
+  },
   game: {
     // Board
     xSize: number;

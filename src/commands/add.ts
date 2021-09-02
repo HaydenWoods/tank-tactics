@@ -2,11 +2,10 @@ import { config } from "@/config";
 
 import { ICommand } from "@/types/command";
 import { GameStatus } from "@/types/game";
-import { HistoryType } from "@/types/history";
 
-import { addGameHistory, addGamePlayer, findGameByStatusAndChannelId } from "@/services/game";
-import { findOrCreateUser } from "@/services/user";
-import { findPlayer } from "@/services/player";
+import { addGamePlayer } from "@/services/game";
+import { createOrUpdateUser } from "@/services/user";
+import { findPlayerByGameAndDiscordId } from "@/services/player";
 
 export const add: ICommand = {
   data: {
@@ -21,57 +20,41 @@ export const add: ICommand = {
       }
     ]
   },
-  execute: async (interaction) => {
-    const { channelId } = interaction;
-
-    const discordUser = interaction.options.get("player")?.user;
-
-    if (!discordUser) {
-      throw Error("No player to add");
-    }
-    if (discordUser.bot) {
-      throw Error("Unable to add a bot to the game");
-    }
-
-    const game = await findGameByStatusAndChannelId({
-      channelId,
-      statuses: [GameStatus.SETUP],
-    }, { lean: false });
-
+  execute: async (interaction, { game, actionUser }) => {
     if (!game) {
-      throw Error("Game does not exist");
+      throw new Error("Game does not exist");
     }
-
+    if (game.status !== GameStatus.SETUP) {
+      throw new Error("Game is not in setup")
+    }
     if (game.players.length >= config.game.maximumPlayers) {
-      throw Error(`Game has a maximum of ${config.game.maximumPlayers} players.`);
+      throw new Error(`Game has a maximum of ${config.game.maximumPlayers} players.`);
     }
 
-    const commandUser = await findOrCreateUser({ discordUser });
-    const addingUser = await findOrCreateUser({ discordUser });
+    const targetDiscordUser = interaction.options.get("player")?.user;
 
-    const doesExist = await findPlayer({ game, user: addingUser });
+    if (!targetDiscordUser) {
+      throw new Error("No player to add");
+    }
+    if (targetDiscordUser.bot) {
+      throw new Error("Unable to add a bot to the game");
+    }
+
+    const targetUser = await createOrUpdateUser({ discordUser: targetDiscordUser });
+    const doesExist = await findPlayerByGameAndDiscordId({ 
+      gameId: game._id, 
+      discordId: targetDiscordUser.id 
+    });
 
     if (doesExist) {
-      throw Error(`${addingUser.username} already exists in this game`);
+      throw Error(`${targetUser.username} already exists in this game`);
     }
     
-    const player = await addGamePlayer({
-      _id: game._id,
-      userId: addingUser.id,
+    await addGamePlayer({
+      game,
+      user: targetUser,
     });
 
-    await addGameHistory({ 
-      _id: game._id,
-      history: { 
-        type: HistoryType.ADD,
-        user: commandUser,
-        game,
-        meta: {
-          player: player._id,
-        },
-      },
-    });
-
-    await interaction.reply(`${addingUser.username} has been added to the game.`);
+    await interaction.reply(`${actionUser.username} has added ${targetUser.username} to the game.`);
   },
 };

@@ -1,42 +1,22 @@
-import { SlashCommandBuilder } from "@discordjs/builders";
-
-import { GameStatus } from "@/types/game";
 import { ICommand } from "@/types/command";
-import { HistoryType } from "@/types/history";
-import { findOrCreateUser } from "@/services/user";
+import { GameStatus } from "@/types/game";
 
-import { addGameHistory, findGame, pauseGame } from "@/services/game";
+import { pauseGame } from "@/services/game";
 
 export const pause: ICommand = {
   data: {
     "name": "pause",
     "description": "Pause the current Tank Tactics game.",
   },
-  execute: async (interaction) => {
-    const { channelId } = interaction;
-    const discordUser = interaction.user;
-    
-    const user = await findOrCreateUser({ discordUser });
-
-    const game = await findGame({ 
-      channelId, 
-      status: GameStatus.IN_PROGRESS 
-    });
-
+  execute: async (interaction, { game }) => {
     if (!game) {
-      throw Error("Game in setup doesn't exist in this channel");
+      throw new Error("Game does not exist");
+    }
+    if (game.status !== GameStatus.IN_PROGRESS) {
+      throw new Error("Game is not in progress");
     }
     
-    await pauseGame({ _id: game._id });
-
-    await addGameHistory({ 
-      _id: game._id,
-      history: {
-        type: HistoryType.PAUSE,
-        user,
-        game,
-      }
-    });
+    await pauseGame({ game });
 
     await interaction.reply("Game has been paused");
   },

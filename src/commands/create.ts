@@ -1,49 +1,35 @@
-import { SlashCommandBuilder } from "@discordjs/builders";
-
-import { GameStatus } from "@/types/game";
 import { ICommand } from "@/types/command";
-import { HistoryType } from "@/types/history";
 
-import { Game } from "@/models/game";
-
-import { addGameHistory, findGameByStatusAndChannelId } from "@/services/game";
-import { findOrCreateUser } from "@/services/user";
+import { addGamePlayer, createGame } from "@/services/game";
 
 export const create: ICommand = {
   data: {
     "name": "create",
     "description": "Create a new Tank Tactics game.",
   },
-  execute: async (interaction) => {
-    const { guildId, channelId } = interaction;
-    const discordUser = interaction.user;
+  execute: async (interaction, { actionUser, game }) => {
+    const { channelId, guildId } = interaction;
 
-    const doesExist = await findGameByStatusAndChannelId({
-      channelId,
-      statuses: [GameStatus.IN_PROGRESS, GameStatus.PAUSED],
-    });
-
-    if (doesExist) {
+    if (!guildId) {
+      throw new Error("Game must be created within a guild ");
+    }
+    if (game) {
       throw new Error("Game exists in this channel already");
     }
 
-    const user = await findOrCreateUser({ discordUser });
-
-    const game = await Game.create({
+    const createdGame = await createGame({
       guildId,
       channelId,
-      user,
+      user: actionUser,
     });
 
-    await addGameHistory({ 
-      _id: game._id, 
-      history: { 
-        type: HistoryType.CREATE,
-        user,
-        game,
-      },
+    await interaction.reply(`A new Tank Tactics game has been created.`);
+
+    await addGamePlayer({
+      game: createdGame,
+      user: actionUser,
     });
 
-    await interaction.reply("Game has been created");
+    await interaction.followUp(`${actionUser.username} was added to the game.`);
   },
 };

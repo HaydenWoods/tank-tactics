@@ -41,30 +41,19 @@ export const move: ICommand = {
       }
     ]
   },
-  execute: async (interaction) => {
-    const { channelId } = interaction;
-
-    const actionDiscordUser = interaction.user;
-    const direction = interaction.options.get("direction")?.value as Direction;
-    const amount = (interaction.options.get("amount")?.value || 1) as number;
-
-    const game = await findGameByStatusAndChannelId({
-      channelId,
-      statuses: [GameStatus.IN_PROGRESS],
-    });
-
+  execute: async (interaction, { game, actionPlayer }) => {
     if (!game) {
-      throw new Error("Game in setup doesn't exist in this channel");
+      throw new Error("Game does not exist");
     }
-
-    const actionPlayer = await findPlayerByGameAndDiscordId({
-      gameId: game._id,
-      discordId: actionDiscordUser.id,
-    });
-
+    if (game.status !== GameStatus.IN_PROGRESS) {
+      throw new Error("Game is not in progress");
+    }
     if (!actionPlayer) {
       throw new Error("You do not exist within this game");
     }
+
+    const direction = interaction.options.get("direction")?.value as Direction;
+    const amount = (interaction.options.get("amount")?.value || 1) as number;
 
     await movePlayerDirection({ 
       actionPlayer, 

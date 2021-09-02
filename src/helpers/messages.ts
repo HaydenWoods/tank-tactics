@@ -15,5 +15,12 @@ export const buildPlayerInfoEmbed = ({
   return new MessageEmbed()
     .setColor(config.bot.color)
     .setTitle(`${player.user.username}`)
-    .setDescription(playerInfo.map((item) => `${item.title} ${item.value}`).join("\n"));
+    .setDescription(playerInfo.map((item) => `${item.title}   ${item.value}`).join("\n"));
+};
+
+export const buildHelpEmbed = () => {
+  return new MessageEmbed()
+    .setColor(config.bot.color)
+    .setTitle("Help")
+    .setDescription("There will be help here in the future.");
 };

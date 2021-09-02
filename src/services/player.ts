@@ -32,7 +32,11 @@ export const findPlayerByGameAndDiscordId = async ({
 
   const player = await findPlayer({ 
     user: user._id, 
-    game: gameId 
+    game: gameId,
+    $or: [
+      { status: PlayerStatus.ALIVE },
+      { status: PlayerStatus.DEAD },
+    ],
   }).populate("user");
 
   return player;
@@ -51,7 +55,7 @@ export const shootPlayer = async ({
   if (targetPlayer.status === PlayerStatus.DEAD) {
     throw new Error("Target player is already dead");
   }
-  if (targetPlayer.status === PlayerStatus.LEFT) {
+  if (targetPlayer.status === PlayerStatus.REMOVED) {
     throw new Error("Target player has left the game");
   }
 
@@ -59,7 +63,7 @@ export const shootPlayer = async ({
   if (actionPlayer.status === PlayerStatus.DEAD) {
     throw new Error("You are dead");
   }
-  if (actionPlayer.status === PlayerStatus.LEFT) {
+  if (actionPlayer.status === PlayerStatus.REMOVED) {
     throw new Error("You have left the game");
   }
 
@@ -115,7 +119,7 @@ export const movePlayerDirection = async ({
   if (actionPlayer.status === PlayerStatus.DEAD) {
     throw new Error("You are dead");
   }
-  if (actionPlayer.status === PlayerStatus.LEFT) {
+  if (actionPlayer.status === PlayerStatus.REMOVED) {
     throw new Error("You have left the game");
   }
 
@@ -176,6 +180,7 @@ export const getPlayerInfo = ({
   const playerInfo: PlayerInfo = [
     { title: ":heart:", value: `${targetPlayer.health} hearts` },
     { title: ":compass:", value: `${targetPlayer.range} range` },
+    { title: ":map:", value: `${targetPlayer.position.x} : ${targetPlayer.position.y}` },
     ...(isTargetPlayer ? [
       { title: ":gem:", value: `${targetPlayer.actionPoints} action points` }
     ] : []),

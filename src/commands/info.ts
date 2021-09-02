@@ -2,7 +2,6 @@ import { GameStatus } from "@/types/game";
 import { ICommand } from "@/types/command";
 
 import { findPlayerByGameAndDiscordId, getPlayerInfo } from "@/services/player";
-import { findGame } from "@/services/game";
 import { buildPlayerInfoEmbed } from "@/helpers/messages";
 
 export const info: ICommand = {
@@ -18,32 +17,21 @@ export const info: ICommand = {
       },
     ],
   },
-  execute: async (interaction) => {
-    const { channelId } = interaction;
+  execute: async (interaction, { game, actionPlayer }) => {
+    if (!game) {
+      throw new Error("Game does not exist");
+    }
+    if (game.status !== GameStatus.IN_PROGRESS) {
+      throw new Error("Game is not in progress");
+    }
+    if (!actionPlayer) {
+      throw new Error("You do not exist in this game");
+    }
 
-    const actionDiscordUser = interaction.user;
     const targetDiscordUser = interaction.options.get("player")?.user;
 
     if (!targetDiscordUser) {
       throw new Error("No target player given");
-    }
-
-    const game = await findGame({ 
-      channelId, 
-      status: GameStatus.IN_PROGRESS 
-    });
-
-    if (!game) {
-      throw new Error("Game does not exist");
-    }
-    
-    const actionPlayer = await findPlayerByGameAndDiscordId({ 
-      discordId: actionDiscordUser.id,
-      gameId: game._id,
-    });
-
-    if (!actionPlayer) {
-      throw new Error("You do not exist in this game");
     }
 
     const targetPlayer = await findPlayerByGameAndDiscordId({ 
@@ -65,6 +53,6 @@ export const info: ICommand = {
       playerInfo 
     });
 
-    interaction.reply({ embeds: [embed], ephemeral: true });
+    await interaction.reply({ embeds: [embed], ephemeral: true });
   },
 };
