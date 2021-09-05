@@ -1,5 +1,5 @@
 import { Config } from "@/types/config";
-import { BoardPosition, BoardPositionBase } from "@/types/game";
+import { BoardPositionBase } from "@/types/game";
 
 import { IPlayer } from "@/models/player";
 
@@ -23,40 +23,4 @@ export const getAllPositions = ({
   }
 
   return allPositions;
-};
-
-export const getBoardPositions = ({ 
-  players,
-  xSize,
-  ySize, 
-}: { 
-  players: IPlayer[]; 
-  xSize: Config["game"]["xSize"]; 
-  ySize: Config["game"]["ySize"];
-}) => {
-  const allPositions = getAllPositions({ xSize, ySize });
-  const playerPositions = players.map((player) => player.position);
-
-  const boardPositions: BoardPosition[] = allPositions.map((position) => {
-    const isPlayer = playerPositions.find((playerPosition) => 
-      positionMatch(playerPosition, position)
-    ) ? true : false;
-
-    if (isPlayer) {
-      const player = players.find((player) => positionMatch(player.position, position));
-
-      return {
-        ...position,
-        type: "player",
-        player,
-      }
-    }
-
-    return {
-      ...position,
-      type: "blank",
-    };
-  });
-  
-  return boardPositions;
 };

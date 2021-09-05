@@ -1,3 +1,5 @@
+import { IPlayerDocument } from "@/models/player";
+
 export enum GameStatus {
   SETUP = "setup",
   IN_PROGRESS = "inProgress",
@@ -15,6 +17,6 @@ export interface BoardPositionBlank extends BoardPositionBase {
 }
 export interface BoardPositionPlayer extends BoardPositionBase {
   type: "player";
-  player: any; 
+  player: IPlayerDocument; 
 }
 export type BoardPosition = BoardPositionBlank | BoardPositionPlayer;

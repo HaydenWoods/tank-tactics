@@ -12,7 +12,7 @@
   "dependencies": {
     "@discordjs/builders": "^0.5.0",
     "@types/luxon": "^2.0.0",
-    "@types/mongoose": "^5.11.97",
+    "agenda": "^4.2.1",
     "discord-slash-commands-client": "^1.2.1",
     "discord.js": "^13.1.0",
     "lodash": "^4.17.21",

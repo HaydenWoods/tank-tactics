@@ -20,9 +20,12 @@ export const add: ICommand = {
       }
     ]
   },
-  execute: async (interaction, { game, actionUser }) => {
+  execute: async (interaction, { game, isAdmin, actionUser }) => {
     if (!game) {
       throw new Error("Game does not exist");
+    }
+    if (!isAdmin) {
+      throw new Error("Must be game admin to remove a player");
     }
     if (game.status !== GameStatus.SETUP) {
       throw new Error("Game is not in setup")

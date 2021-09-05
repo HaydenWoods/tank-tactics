@@ -1,0 +1,23 @@
+version: "3.9"
+services:
+  bot:
+    build: 
+      context: .
+      dockerfile: Dockerfile.dev
+    env_file: .env.dev
+    volumes:
+      - ./:/var/bot
+    depends_on: 
+      - mongo
+      - redis
+  mongo:
+    image: mongo
+    volumes:
+      - ./docker/mongodb/data:/data/db
+      - ./docker/mongodb/config:/etc/mongo/
+    ports:
+      - "27017:27017"
+    command: mongod --quiet --logpath /dev/null 
+  redis:
+    image: redis
+  

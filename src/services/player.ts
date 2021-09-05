@@ -2,12 +2,13 @@ import { FilterQuery, QueryOptions } from "mongoose";
 
 import { config } from "@/config";
 
-import { Direction, Items, PlayerInfo, PlayerStatus } from "@/types/player";
+import { Direction, PlayerInfo, PlayerStatus } from "@/types/player";
 
 import { IGameDocument } from "@/models/game";
-import { IPlayer, IPlayerDocument, Player } from "@/models/player";
+import { IPlayerDocument, Player } from "@/models/player";
 import { User, IUserDocument } from "@/models/user";
-import { doesPlayerHaveItem, isPlayerAlive, isPlayerInRange } from "@/helpers/player";
+
+import { isPlayerAlive, isPlayerInRange } from "@/helpers/player";
 import { positionMatch } from "@/helpers/game";
 
 export const findPlayer = (
@@ -42,6 +43,56 @@ export const findPlayerByGameAndDiscordId = async ({
   return player;
 };
 
+export const setPlayerHealth = async ({
+  actionPlayer,
+  targetPlayer,
+  health,
+}: {
+  actionPlayer?: IPlayerDocument;
+  targetPlayer: IPlayerDocument;
+  health: number;
+}) => {
+  if (targetPlayer.status === PlayerStatus.REMOVED) {
+    throw new Error("Target player doesn't exist in the game");
+  }
+  if (actionPlayer && actionPlayer.status === PlayerStatus.REMOVED) {
+    throw new Error("Action player doesn't exist in the game");
+  }
+
+  const wasDead = targetPlayer.status === PlayerStatus.DEAD;
+  const wasAlive = targetPlayer.status === PlayerStatus.ALIVE;
+
+  const targetPlayerHealth = Math.max(health, 0);
+
+  const isNowDead = targetPlayerHealth <= 0 && wasAlive;
+  const isNowAlive = targetPlayerHealth > 0 && wasDead;
+
+  const targetPlayerActionPoints = (isNowDead || isNowAlive) ? 0 : targetPlayer.actionPoints;
+  let actionPlayerActionPoints;
+
+  if (isNowDead && actionPlayer) {
+    actionPlayerActionPoints = actionPlayer.actionPoints + targetPlayer.actionPoints;
+
+    await actionPlayer.updateOne({
+      actionPoints: actionPlayerActionPoints,
+    });
+  }
+
+  await targetPlayer.updateOne({
+    health,
+    actionPoints: targetPlayerActionPoints, 
+    status: isNowDead ? PlayerStatus.DEAD : PlayerStatus.ALIVE,
+  });
+
+  return {
+    isNowDead,
+    isNowAlive,
+    targetPlayerHealth,
+    targetPlayerActionPoints,
+    actionPlayerActionPoints,
+  };
+};
+
 export const shootPlayer = async ({ 
   actionPlayer, 
   targetPlayer,
@@ -70,26 +121,27 @@ export const shootPlayer = async ({
     throw new Error("You do not have enough action points");
   }
 
-  const targetPlayerHealth = targetPlayer.health - actualAmount;
-  const targetPlayerIsDead = targetPlayerHealth <= 0;
-  const targetPlayerActionPoints = targetPlayerIsDead ? 0 : targetPlayer.actionPoints;
-  const targetPlayerStatus = targetPlayerIsDead ? PlayerStatus.DEAD : PlayerStatus.ALIVE;
+  const resultingHealth = targetPlayer.health - actualAmount;
 
-  const actionPlayerActionPoints = (actionPlayer.actionPoints - actualAmount) + (targetPlayerIsDead ? targetPlayer.actionPoints : 0);
-
-  await actionPlayer.updateOne({ 
-    actionPoints: actionPlayerActionPoints 
+  let {
+    isNowDead,
+    actionPlayerActionPoints,
+  } = await setPlayerHealth({ 
+    actionPlayer, 
+    targetPlayer, 
+    health: resultingHealth 
   });
 
-  await targetPlayer.updateOne({ 
-    health: targetPlayerHealth,
-    status: targetPlayerStatus,
-    actionPoints: targetPlayerActionPoints,
+  actionPlayerActionPoints = (actionPlayerActionPoints as number) - actualAmount;
+
+  await actionPlayer.updateOne({
+    actionPoints: actionPlayerActionPoints,
   });
 
   return {
+    isNowDead,
+    resultingHealth,
     actualAmount,
-    targetPlayerIsDead,
   };
 };
 
@@ -153,27 +205,6 @@ export const movePlayerDirection = async ({
   });
 };
 
-export const getPlayerInfo = ({ 
-  actionPlayer, 
-  targetPlayer 
-}: { 
-  actionPlayer: IPlayerDocument;
-  targetPlayer: IPlayerDocument;
-}) => {
-  const isTargetPlayer = actionPlayer._id.toString() === targetPlayer._id.toString();
-  
-  const playerInfo: PlayerInfo = [
-    { title: ":heart:", value: `${targetPlayer.health} hearts` },
-    { title: ":compass:", value: `${targetPlayer.range} range` },
-    { title: ":map:", value: `${targetPlayer.position.x} : ${targetPlayer.position.y}` },
-    ...(isTargetPlayer ? [
-      { title: ":gem:", value: `${targetPlayer.actionPoints} action points` }
-    ] : []),
-  ];
-
-  return playerInfo;
-};
-
 export const givePlayerActionPoints = async ({
   actionPlayer,
   targetPlayer,
@@ -209,4 +240,48 @@ export const givePlayerActionPoints = async ({
   await targetPlayer.updateOne({
     actionPoints: targetPlayerActionPoints,
   });
+};
+
+export const givePlayerHealth = async ({
+  actionPlayer,
+  targetPlayer,
+  amount,
+}: {
+  actionPlayer: IPlayerDocument;
+  targetPlayer: IPlayerDocument;
+  amount: number;
+}) => {
+  if (targetPlayer.status === PlayerStatus.REMOVED) {
+    throw new Error("Target player doesn't exist in the game");
+  }
+  if (actionPlayer && actionPlayer.status === PlayerStatus.REMOVED) {
+    throw new Error("Action player doesn't exist in the game");
+  }
+  if (!isPlayerInRange({ actionPlayer, targetPlayer })) {
+    throw new Error("Target player is not in range");
+  }
+  if (actionPlayer._id.toString() === targetPlayer._id.toString()) {
+    throw new Error("You can't give to yourself");
+  } 
+  if (actionPlayer.health < amount) {
+    throw new Error(`You do not have enough health to give`);
+  }
+
+  const actionPlayerHealth = actionPlayer.health - amount;
+  const targetPlayerHealth = targetPlayer.health + amount;
+
+  const actionPlayerRes = await setPlayerHealth({ 
+    targetPlayer: actionPlayer, 
+    health: actionPlayerHealth 
+  });
+
+  const targetPlayerRes = await setPlayerHealth({ 
+    targetPlayer, 
+    health: targetPlayerHealth 
+  });
+
+  return {
+    isActionPlayerDead: actionPlayerRes.isNowDead,
+    isTargetPlayerAlive: targetPlayerRes.isNowAlive,
+  };
 };

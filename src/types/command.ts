@@ -7,12 +7,14 @@ import { IUserDocument } from "@/models/user";
 export interface ICommand {
   data: any;
   execute: (interaction: CommandInteraction, { 
-    actionUser, 
     game, 
+    actionUser, 
+    isAdmin,
     actionPlayer 
   }: { 
-    actionUser: IUserDocument;
     game: IGameDocument | null;
+    actionUser: IUserDocument;
+    isAdmin: boolean;
     actionPlayer: IPlayerDocument | null;
   }) => Promise<void>;
 }

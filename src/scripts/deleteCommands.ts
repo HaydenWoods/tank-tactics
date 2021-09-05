@@ -6,6 +6,7 @@ export const sleep = async (ms: number) => new Promise(r => setTimeout(r, ms));
 
 export const index = async () => {
   const { token, applicationId } = config.bot;
+  const { guildId } = config.commands;
 
   console.log("Deleting commands");
   
@@ -15,10 +16,12 @@ export const index = async () => {
 
   const client = new Client(token, applicationId);
 
-  const commands = await client.getCommands({})
+  const commands = await client.getCommands({ guildID: guildId });
+
+  console.log(commands);
 
   for (const command of Array.isArray(commands) ? commands : [commands]) {
-    await client.deleteCommand(command.id);
+    await client.deleteCommand(command.id, guildId);
 
     console.log("Deleted command >", command.id);
 

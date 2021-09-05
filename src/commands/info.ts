@@ -1,7 +1,7 @@
 import { GameStatus } from "@/types/game";
 import { ICommand } from "@/types/command";
 
-import { findPlayerByGameAndDiscordId, getPlayerInfo } from "@/services/player";
+import { findPlayerByGameAndDiscordId } from "@/services/player";
 import { buildPlayerInfoEmbed } from "@/helpers/messages";
 
 export const info: ICommand = {
@@ -43,16 +43,11 @@ export const info: ICommand = {
       throw new Error("Target player does not exist in this game");
     }
 
-    const playerInfo = getPlayerInfo({ 
-      actionPlayer,
-      targetPlayer,
-    });
-
     const embed = buildPlayerInfoEmbed({ 
-      player: targetPlayer, 
-      playerInfo 
+      player: targetPlayer,
+      showPrivate: false,
     });
 
-    await interaction.reply({ embeds: [embed], ephemeral: true });
+    await interaction.reply({ embeds: [embed] });
   },
 };

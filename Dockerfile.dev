@@ -1,0 +1,12 @@
+FROM node:16
+
+WORKDIR /var/bot
+
+RUN npm -g i typescript
+RUN npm -g i ts-node-dev
+
+ADD . .
+
+RUN yarn 
+
+CMD [ "ts-node-dev", "--respawn", "-r", "tsconfig-paths/register", "./src/index.ts" ]

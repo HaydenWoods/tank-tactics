@@ -2,6 +2,7 @@ import { ICommand } from "../types/command";
 
 import { add } from "@/commands/add";
 import { board } from "@/commands/board";
+import { buy } from "@/commands/buy";
 import { cancel } from "@/commands/cancel";
 import { create } from "@/commands/create";
 import { give } from "@/commands/give";
@@ -18,6 +19,7 @@ import { start } from "@/commands/start";
 export const commands: Record<string, ICommand> = {
   add,
   board,
+  buy,
   cancel,
   create,
   give,

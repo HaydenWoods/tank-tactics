@@ -23,7 +23,7 @@ mongoose.connect(
   }
 );
 
-const client = new Client({
+export const client = new Client({
   intents: ["GUILDS", "GUILD_MESSAGES", "DIRECT_MESSAGES"],
   partials: ["CHANNEL"],
 });
@@ -54,6 +54,8 @@ client.on("interactionCreate", async (interaction) => {
     const actionDiscordUser = interaction.user;
     const actionUser = await createOrUpdateUser({ discordUser: actionDiscordUser });
 
+    const isAdmin = game?.user.toString() === actionUser._id.toString();
+
     const actionPlayer = game ? await findPlayerByGameAndDiscordId({
       gameId: game._id,
       discordId: actionDiscordUser.id,
@@ -62,6 +64,7 @@ client.on("interactionCreate", async (interaction) => {
     await commands[commandName].execute(interaction, {
       game,
       actionUser,
+      isAdmin,
       actionPlayer,
     });
   } catch (error) {

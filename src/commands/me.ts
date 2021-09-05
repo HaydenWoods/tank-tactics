@@ -1,7 +1,6 @@
 import { GameStatus } from "@/types/game";
 import { ICommand } from "@/types/command";
 
-import { getPlayerInfo } from "@/services/player";
 import { buildPlayerInfoEmbed } from "@/helpers/messages";
 
 export const me: ICommand = {
@@ -20,14 +19,9 @@ export const me: ICommand = {
       throw new Error("You do not exist in this game");
     }
 
-    const playerInfo = getPlayerInfo({ 
-      actionPlayer, 
-      targetPlayer: actionPlayer 
-    });
-
     const embed = buildPlayerInfoEmbed({ 
-      player: actionPlayer, 
-      playerInfo 
+      player: actionPlayer,
+      showPrivate: true,
     });
 
     await interaction.reply({ embeds: [embed], ephemeral: true });

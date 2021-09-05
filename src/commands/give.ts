@@ -5,6 +5,7 @@ import { Items } from "@/types/player";
 import { 
   findPlayerByGameAndDiscordId, 
   givePlayerActionPoints, 
+  givePlayerHealth,
 } from "@/services/player";
 
 export const give: ICommand = {
@@ -79,9 +80,21 @@ export const give: ICommand = {
 
     if (item === Items.ACTION_POINTS) {
       await givePlayerActionPoints(parameters);
-      await interaction.reply(`${actionPlayer.user.username} has given ${targetPlayer.user.username} ${amount} action points.`);
+      await interaction.reply(`${actionPlayer.user.username} has given ${targetPlayer.user.username} ${amount} action points`);
     } else if (item === Items.HEALTH) {
-      await interaction.reply("In development");
+      const { 
+        isActionPlayerDead,
+        isTargetPlayerAlive,
+      } = await givePlayerHealth(parameters);
+
+      await interaction.reply(`${actionPlayer.user.username} has given ${targetPlayer.user.username} ${amount} health`);
+
+      if (isActionPlayerDead) {
+        await interaction.followUp(`${actionPlayer.user.username} has died`);
+      }
+      if (isTargetPlayerAlive) {
+        await interaction.followUp(`${targetPlayer.user.username} has been revived`);
+      }
     }
   },
 };

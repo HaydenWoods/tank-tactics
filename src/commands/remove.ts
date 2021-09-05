@@ -17,9 +17,12 @@ export const remove: ICommand = {
       },
     ],
   },
-  execute: async (interaction, { game, actionPlayer }) => {
+  execute: async (interaction, { game, isAdmin, actionPlayer }) => {
     if (!game) {
       throw new Error("Game doesn't exist in this channel");
+    }
+    if (!isAdmin) {
+      throw new Error("Must be game admin to remove a player");
     }
     if (game.status !== GameStatus.SETUP) {
       throw new Error("Game is not in setup");

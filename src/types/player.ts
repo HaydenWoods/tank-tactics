@@ -13,6 +13,7 @@ export enum Direction {
 
 export enum Items {
   ACTION_POINTS = "actionPoints",
+  RANGE = "range",
   HEALTH = "health",
 }
 

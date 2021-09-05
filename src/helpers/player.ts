@@ -29,6 +29,13 @@ export const isPlayerAlive = ({
   return true;
 };
 
+export const isPlayersEqual = (
+  player1: IPlayerDocument, 
+  player2: IPlayerDocument,
+) => {
+  return player1._id.toString() === player2._id.toString();
+};
+
 export const doesPlayerHaveItem = ({
   player, 
   item,
@@ -50,4 +57,27 @@ export const doesPlayerHaveItem = ({
   }
 
   return true;
+};
+
+export const getPlayerDescription = ({ 
+  player,
+  showPrivate = false,
+}: { 
+  player: IPlayer;
+  showPrivate?: boolean;
+}) => {
+  const playerInfo = [
+    { title: ":heart:", value: `${player.health} hearts` },
+    { title: ":compass:", value: `${player.range} range` },
+    { title: ":map:", value: `${player.position.x} : ${player.position.y}` },
+    ...(showPrivate ? [
+      { title: ":gem:", value: `${player.actionPoints} action points` }
+    ] : []),
+  ];
+
+  const playerDescription = playerInfo.map((item) => {
+    return `${item.title} ${item.value}`;
+  }).join("\n");
+
+  return playerDescription;
 };

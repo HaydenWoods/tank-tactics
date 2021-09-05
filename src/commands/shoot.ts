@@ -1,7 +1,6 @@
 import { ICommand } from "@/types/command";
 import { GameStatus } from "@/types/game";
 
-import { findGameByStatusAndChannelId } from "@/services/game";
 import { findPlayerByGameAndDiscordId, shootPlayer } from "@/services/player";
 
 export const shoot: ICommand = {
@@ -52,12 +51,12 @@ export const shoot: ICommand = {
 
     const { 
       actualAmount, 
-      targetPlayerIsDead 
+      isNowDead, 
     } = await shootPlayer({ actionPlayer, targetPlayer, amount });
     
     await interaction.reply(`${actionPlayer.user.username} has shot ${targetPlayer.user.username} ${actualAmount > 1 ? `${actualAmount} times` : ""}`);
 
-    if (targetPlayerIsDead) {
+    if (isNowDead) {
       await interaction.followUp(`${targetPlayer.user.username} has died`);
       await interaction.followUp(`${actionPlayer.user.username} has been awarded all of ${targetPlayer.user.username}'s action points`);
     }
