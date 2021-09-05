@@ -18,8 +18,6 @@ export const index = async () => {
 
   const commands = await client.getCommands({ guildID: guildId });
 
-  console.log(commands);
-
   for (const command of Array.isArray(commands) ? commands : [commands]) {
     await client.deleteCommand(command.id, guildId);
 

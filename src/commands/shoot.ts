@@ -34,7 +34,7 @@ export const shoot: ICommand = {
     }
     
     const targetDiscordUser = interaction.options.get("player")?.user;
-    const amount = interaction.options.get("amount")?.value as number;
+    const amount = (interaction.options.get("amount")?.value || 1) as number;
 
     if (!targetDiscordUser) {
       throw new Error("No target player given");

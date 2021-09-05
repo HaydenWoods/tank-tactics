@@ -10,6 +10,8 @@ import { User, IUserDocument } from "@/models/user";
 
 import { isPlayerAlive, isPlayerInRange } from "@/helpers/player";
 import { positionMatch } from "@/helpers/game";
+import { Items } from "@/types/shop";
+import { SHOP_ITEMS } from "@/constants/shop";
 
 export const findPlayer = (
   query: FilterQuery<IPlayerDocument>, 
@@ -68,10 +70,10 @@ export const setPlayerHealth = async ({
   const isNowAlive = targetPlayerHealth > 0 && wasDead;
 
   const targetPlayerActionPoints = (isNowDead || isNowAlive) ? 0 : targetPlayer.actionPoints;
-  let actionPlayerActionPoints;
+  let actionPlayerActionPoints = actionPlayer?.actionPoints || 0;
 
   if (isNowDead && actionPlayer) {
-    actionPlayerActionPoints = actionPlayer.actionPoints + targetPlayer.actionPoints;
+    actionPlayerActionPoints += targetPlayer.actionPoints;
 
     await actionPlayer.updateOne({
       actionPoints: actionPlayerActionPoints,
@@ -100,7 +102,7 @@ export const shootPlayer = async ({
 }: { 
   actionPlayer: IPlayerDocument;
   targetPlayer: IPlayerDocument;
-  amount?: number;
+  amount: number;
 }) => {
   if (!isPlayerAlive({ player: targetPlayer })) {
     throw new Error("Target player is dead or doesn't exist in the game");
@@ -115,7 +117,7 @@ export const shootPlayer = async ({
     throw new Error("You can't shoot yourself");
   } 
   
-  const actualAmount = Math.min(amount || 1, targetPlayer.health);
+  const actualAmount = Math.min(amount, targetPlayer.health);
 
   if (actionPlayer.actionPoints < actualAmount) {
     throw new Error("You do not have enough action points");
@@ -132,7 +134,7 @@ export const shootPlayer = async ({
     health: resultingHealth 
   });
 
-  actionPlayerActionPoints = (actionPlayerActionPoints as number) - actualAmount;
+  actionPlayerActionPoints = actionPlayerActionPoints - actualAmount;
 
   await actionPlayer.updateOne({
     actionPoints: actionPlayerActionPoints,
@@ -227,7 +229,7 @@ export const givePlayerActionPoints = async ({
     throw new Error("You can't give to yourself");
   } 
   if (actionPlayer.actionPoints < amount) {
-    throw new Error(`You do not have enough action points to give`);
+    throw new Error("You do not have enough action points to give");
   }
 
   const actionPlayerActionPoints = actionPlayer.actionPoints - amount;
@@ -285,3 +287,38 @@ export const givePlayerHealth = async ({
     isTargetPlayerAlive: targetPlayerRes.isNowAlive,
   };
 };
+
+export const buyItem = async ({
+  player,
+  item,
+  amount,
+}: {
+  player: IPlayerDocument;
+  item: Items;
+  amount: number;
+}) => {
+  if (!isPlayerAlive({ player })) {
+    throw new Error("You are dead or don't exist in the game");
+  }
+  
+  const shopItem = SHOP_ITEMS[item];
+
+  if (!shopItem) {
+    throw new Error("Item was not found");
+  }
+
+  const { price } = shopItem;
+  const totalPrice = price * amount;
+
+  if (player.actionPoints < totalPrice) {
+    throw new Error("You do not have enough action points to buy this item");
+  }
+
+  const playerActionPoints = player.actionPoints - totalPrice;
+  const playerItems = player[item] + amount; 
+
+  await player.updateOne({
+    actionPoints: playerActionPoints,
+    [item]: playerItems,
+  });
+}

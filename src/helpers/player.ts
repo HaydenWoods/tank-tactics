@@ -1,5 +1,5 @@
 import { IPlayer, IPlayerDocument } from "@/models/player";
-import { Items, PlayerStatus } from "@/types/player";
+import { PlayerStatus } from "@/types/player";
 
 export const isPlayerInRange = ({ 
   actionPlayer, 
@@ -34,29 +34,6 @@ export const isPlayersEqual = (
   player2: IPlayerDocument,
 ) => {
   return player1._id.toString() === player2._id.toString();
-};
-
-export const doesPlayerHaveItem = ({
-  player, 
-  item,
-  amount,
-}: {
-  player: IPlayer;
-  item: Items;
-  amount: number;
-}) => {
-  const items = player[item];
-
-  console.log(player, items, amount);
-
-  if (!items) {
-    return false;
-  }
-  if (items < amount) {
-    return false;
-  }
-
-  return true;
 };
 
 export const getPlayerDescription = ({ 

@@ -1,6 +1,6 @@
 import { ICommand } from "@/types/command";
 import { GameStatus } from "@/types/game";
-import { Items } from "@/types/player";
+import { Items } from "@/types/shop";
 
 import { 
   findPlayerByGameAndDiscordId, 

@@ -11,12 +11,6 @@ export enum Direction {
   RIGHT = "right",
 } 
 
-export enum Items {
-  ACTION_POINTS = "actionPoints",
-  RANGE = "range",
-  HEALTH = "health",
-}
-
 export type PlayerInfo = {
   title: string;
   value: string;

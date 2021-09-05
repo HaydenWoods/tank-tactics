@@ -1,5 +1,7 @@
+import { buyItem } from "@/services/player";
 import { ICommand } from "@/types/command";
 import { GameStatus } from "@/types/game";
+import { Items } from "@/types/shop";
 
 export const buy: ICommand = {
   data: {
@@ -40,6 +42,11 @@ export const buy: ICommand = {
       throw new Error("You do not exist within this game");
     }
 
-    
+    const item = interaction.options.get("item")?.value as Items;
+    const amount = (interaction.options.get("amount")?.value || 1) as number;
+
+    await buyItem({ player: actionPlayer, item, amount });
+
+    interaction.reply(`${actionPlayer.user.username} has bought ${amount} ${item}`);
   },
 };
