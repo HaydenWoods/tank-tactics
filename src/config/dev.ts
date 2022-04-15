@@ -2,7 +2,7 @@ import { Config } from "@/types/config";
 
 export const config: Config = {
   mongo: {
-    url: "mongodb://mongo:27017",
+    url: "mongodb://mongo:27017/tank-tactics",
   },
   bot: {
     token: process.env.BOT_TOKEN,
@@ -28,7 +28,13 @@ export const config: Config = {
     defaultRange: 2,
 
     // Shop
-    rangeCost: 3,
-    healthCost: 3,
+    items: {
+      range: {
+        price: 3,
+      },
+      health: {
+        price: 3,
+      },
+    },
   },
 };

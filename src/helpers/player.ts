@@ -1,11 +1,11 @@
 import { IPlayer, IPlayerDocument } from "@/models/player";
 import { PlayerStatus } from "@/types/player";
 
-export const isPlayerInRange = ({ 
-  actionPlayer, 
+export const isPlayerInRange = ({
+  actionPlayer,
   targetPlayer,
-}: { 
-  actionPlayer: IPlayer; 
+}: {
+  actionPlayer: IPlayer;
   targetPlayer: IPlayer;
 }) => {
   const range = actionPlayer.range;
@@ -13,16 +13,12 @@ export const isPlayerInRange = ({
   const xDistance = Math.abs(targetPlayer.position.x - actionPlayer.position.x);
   const yDistance = Math.abs(targetPlayer.position.y - actionPlayer.position.y);
 
-  const isPlayerInRange = (range >= xDistance) && (range >= yDistance);
+  const isPlayerInRange = range >= xDistance && range >= yDistance;
 
   return isPlayerInRange;
 };
 
-export const isPlayerAlive = ({
-  player,
-}: {
-  player: IPlayer;
-}) => {
+export const isPlayerAlive = ({ player }: { player: IPlayer }) => {
   if (player.status !== PlayerStatus.ALIVE) {
     return false;
   }
@@ -30,31 +26,35 @@ export const isPlayerAlive = ({
 };
 
 export const isPlayersEqual = (
-  player1: IPlayerDocument, 
-  player2: IPlayerDocument,
+  player1: IPlayerDocument,
+  player2: IPlayerDocument
 ) => {
   return player1._id.toString() === player2._id.toString();
 };
 
-export const getPlayerDescription = ({ 
+export const getPlayerDescription = ({
   player,
   showPrivate = false,
-}: { 
+}: {
   player: IPlayer;
   showPrivate?: boolean;
 }) => {
   const playerInfo = [
     { title: ":heart:", value: `${player.health} hearts` },
-    { title: ":compass:", value: `${player.range} range` },
-    { title: ":map:", value: `${player.position.x} : ${player.position.y}` },
-    ...(showPrivate ? [
-      { title: ":gem:", value: `${player.actionPoints} action points` }
-    ] : []),
+    { title: ":map:", value: `${player.position.x}, ${player.position.y}` },
+    ...(showPrivate
+      ? [
+          { title: ":gem:", value: `${player.actionPoints} action points` },
+          { title: ":compass:", value: `${player.range} range` },
+        ]
+      : []),
   ];
 
-  const playerDescription = playerInfo.map((item) => {
-    return `${item.title} ${item.value}`;
-  }).join("\n");
+  const playerDescription = playerInfo
+    .map((item) => {
+      return `${item.title} ${item.value}`;
+    })
+    .join("\n");
 
   return playerDescription;
 };

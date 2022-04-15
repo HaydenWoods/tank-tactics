@@ -3,7 +3,6 @@ import { IPlayerDocument } from "@/models/player";
 export enum GameStatus {
   SETUP = "setup",
   IN_PROGRESS = "inProgress",
-  PAUSED = "paused",
   CANCELLED = "cancelled",
   FINISHED = "finished",
 }
@@ -17,6 +16,6 @@ export interface BoardPositionBlank extends BoardPositionBase {
 }
 export interface BoardPositionPlayer extends BoardPositionBase {
   type: "player";
-  player: IPlayerDocument; 
+  player: IPlayerDocument;
 }
 export type BoardPosition = BoardPositionBlank | BoardPositionPlayer;

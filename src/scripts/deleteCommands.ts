@@ -1,17 +1,21 @@
+import pino from "pino";
 import { Client } from "discord-slash-commands-client";
 
-import { config } from "../config";
+import { config } from "@/config";
 
-export const sleep = async (ms: number) => new Promise(r => setTimeout(r, ms));
+const logger = pino();
+
+export const sleep = async (ms: number) =>
+  new Promise((r) => setTimeout(r, ms));
 
 export const index = async () => {
   const { token, applicationId } = config.bot;
   const { guildId } = config.commands;
 
-  console.log("Deleting commands");
-  
+  logger.info("Starting deleting commands");
+
   if (!token || !applicationId) {
-    throw new Error("No token or application id");
+    throw new Error("No token or application ID");
   }
 
   const client = new Client(token, applicationId);
@@ -21,12 +25,12 @@ export const index = async () => {
   for (const command of Array.isArray(commands) ? commands : [commands]) {
     await client.deleteCommand(command.id, guildId);
 
-    console.log("Deleted command >", command.id);
+    logger.info("Deleted command >", command.id);
 
     await sleep(5000);
   }
 
-  console.log("Deletes finished");
+  logger.info("Finished delete commands");
 };
 
 index();

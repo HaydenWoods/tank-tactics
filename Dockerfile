@@ -7,6 +7,6 @@ RUN npm -g i ts-node
 
 ADD . .
 
-RUN yarn 
+RUN npm i 
 
 CMD [ "ts-node", "-r", "tsconfig-paths/register", "./src/index.ts" ]

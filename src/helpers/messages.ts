@@ -8,6 +8,7 @@ import { IPlayerDocument } from "@/models/player";
 
 import { getPlayerDescription } from "@/helpers/player";
 import { getAllPositions, positionMatch } from "@/helpers/game";
+import { PlayerStatus } from "@/types/player";
 
 export const buildPlayerInfoEmbed = ({ 
   player, 
@@ -32,7 +33,9 @@ export const buildBoardEmbed = ({
 }: {
   players: IPlayerDocument[]
 }) => {
-  const boardFields: EmbedField[] = players.map((player, i) => {
+  const alivePlayers = players.filter((player) => player.status === PlayerStatus.ALIVE);
+
+  const boardFields: EmbedField[] = alivePlayers.map((player, i) => {
     const emoji = PLAYER_EMOJIS[i];
     const name = `:${emoji}: ${player.user.username} `;
     const value = getPlayerDescription({ player });
@@ -52,7 +55,7 @@ export const buildBoardEmbed = ({
     emoji: BLANK_EMOJI,
   }));
 
-  players.forEach((player, i) => {
+  alivePlayers.forEach((player, i) => {
     const index = boardPositions.findIndex((position) => positionMatch(position, player.position));
     boardPositions[index].emoji = PLAYER_EMOJIS[i];
   });

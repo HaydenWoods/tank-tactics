@@ -9,7 +9,7 @@ export enum Direction {
   DOWN = "down",
   LEFT = "left",
   RIGHT = "right",
-} 
+}
 
 export type PlayerInfo = {
   title: string;

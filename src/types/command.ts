@@ -1,20 +1,17 @@
 import { CommandInteraction } from "discord.js";
 
-import { IGameDocument } from "@/models/game";
-import { IPlayerDocument } from "@/models/player";
-import { IUserDocument } from "@/models/user";
+import { ControllerParams } from "@/types/controller";
 
-export interface ICommand {
-  data: any;
-  execute: (interaction: CommandInteraction, { 
-    game, 
-    actionUser, 
-    isAdmin,
-    actionPlayer 
-  }: { 
-    game: IGameDocument | null;
-    actionUser: IUserDocument;
-    isAdmin: boolean;
-    actionPlayer: IPlayerDocument | null;
-  }) => Promise<void>;
-}
+export type CommandController = (
+  interaction: CommandInteraction,
+  params: ControllerParams
+) => Promise<void>;
+
+export type Command = {
+  meta: {
+    name: string;
+    description: string;
+    options?: any;
+  };
+  controller: CommandController;
+};

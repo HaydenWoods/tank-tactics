@@ -1,9 +1,9 @@
-export enum Items {
+export enum Item {
   ACTION_POINTS = "actionPoints",
   RANGE = "range",
   HEALTH = "health",
 }
 
-export interface ShopItem {
-  price: 3;
+export interface ItemConfig {
+  price: number;
 }

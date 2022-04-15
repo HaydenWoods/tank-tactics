@@ -12,140 +12,109 @@ import { IUserDocument } from "@/models/user";
 
 import { getAllPositions } from "@/helpers/game";
 
-export const findGame = (
-  query: FilterQuery<IGameDocument>, 
-  options?: QueryOptions,
-) => {
-  return Game.findOne(query, null, options);
-};
-
-export const findGameByStatusAndChannelId = async ({ 
-  channelId, 
-  statuses,
-}: { 
-  channelId: IGameDocument["channelId"]; 
-  statuses: GameStatus[];
-}) => {
-  const game = await findGame({ 
-    channelId,
-    $or: statuses.map((status) => ({ status })),
-  }).populate({ 
-    path: "players", 
-    populate: { 
-      path: "user" 
-    },
-  });
-
-  return game;
-};
-
-export const createGame = async ({ 
-  guildId,
-  channelId,
-  user,
-}: {
-  guildId: IGameDocument["guildId"];
-  channelId: IGameDocument["channelId"];
-  user: IUserDocument;
-}) => {
-  const game = await Game.create({
+export class GameService {
+  static create = async ({
     guildId,
     channelId,
     user,
-  });
+  }: {
+    guildId: IGameDocument["guildId"];
+    channelId: IGameDocument["channelId"];
+    user: IUserDocument;
+  }) => {
+    const game = await Game.create({
+      guildId,
+      channelId,
+      user,
+    });
 
-  return game;
-};
+    return game;
+  };
 
-export const startGame = async ({ 
-  game,
-}: { 
-  game: IGameDocument;
-}) => {
-  await game.updateOne({ 
-    status: GameStatus.IN_PROGRESS 
-  });
+  static addPlayer = async ({
+    game,
+    user,
+  }: {
+    game: IGameDocument;
+    user: IUserDocument;
+  }) => {
+    const player = await Player.create({
+      user: user._id,
+      game: game._id,
+    });
 
-  let allCoordinates = getAllPositions({ 
-    xSize: config.game.xSize, 
-    ySize: config.game.ySize 
-  });
+    await game.updateOne({
+      $push: {
+        players: player,
+      },
+    });
 
-  game?.players.forEach(async (_id: IPlayerDocument["_id"]) => {
-    const randomCoordinateIndex = random(0, allCoordinates.length, false);
-    const randomCoordinate = allCoordinates[randomCoordinateIndex];
+    return player;
+  };
 
-    allCoordinates.splice(randomCoordinateIndex, 1);
+  static findGame = async ({
+    channelId,
+    statuses,
+  }: {
+    channelId: IGameDocument["channelId"];
+    statuses: GameStatus[];
+  }) => {
+    const game = await Game.findOne({
+      channelId,
+      $or: statuses.map((status) => ({ status })),
+    }).populate({
+      path: "players",
+      populate: {
+        path: "user",
+      },
+    });
 
-    await Player.updateOne({ _id }, { position: randomCoordinate });
-  });
-};
+    return game;
+  };
 
-export const cancelGame = async ({ 
-  game,
-}: { 
-  game: IGameDocument;
-}) => {
-  await game.updateOne({ 
-    status: GameStatus.CANCELLED 
-  });
-};
+  static start = async ({ game }: { game: IGameDocument }) => {
+    await game.updateOne({
+      status: GameStatus.IN_PROGRESS,
+    });
 
-export const pauseGame = async ({
-  game,
-}: {
-  game: IGameDocument;
-}) => {
-  await game.updateOne({ 
-    status: GameStatus.PAUSED
-  });
-};
+    let allCoordinates = getAllPositions({
+      xSize: config.game.xSize,
+      ySize: config.game.ySize,
+    });
 
-export const resumeGame = async ({
-  game,
-}: {
-  game: IGameDocument;
-}) => {
-  await game.updateOne({ 
-    status: GameStatus.IN_PROGRESS 
-  });
-};
+    game.players.forEach(async (_id: IPlayerDocument["_id"]) => {
+      const randomCoordinateIndex = random(0, allCoordinates.length, false);
+      const randomCoordinate = allCoordinates[randomCoordinateIndex];
 
-export const addGamePlayer = async ({ 
-  game,
-  user,
-}: { 
-  game: IGameDocument, 
-  user: IUserDocument,
-}) => {
-  const player = await Player.create({ 
-    user: user._id,
-    game: game._id,
-  });
+      allCoordinates.splice(randomCoordinateIndex, 1);
 
-  await game.updateOne({ 
-    $push: { 
-      players: player,
-    },
-  });
+      await Player.updateOne({ _id }, { position: randomCoordinate });
+    });
+  };
 
-  return player;
-};
+  static cancel = async ({ game }: { game: IGameDocument }) => {
+    await game.updateOne({
+      status: GameStatus.CANCELLED,
+    });
+  };
 
-export const removeGamePlayer = async ({ 
-  game,
-  player,
-}: { 
-  game: IGameDocument, 
-  player: IPlayerDocument,
-}) => {
-  await game.updateOne({ 
-    $pull: { 
-      players: player._id,
-    },
-  });
+  static removePlayer = async ({
+    game,
+    player,
+  }: {
+    game: IGameDocument;
+    player: IPlayerDocument;
+  }) => {
+    await game.updateOne({
+      $pull: {
+        players: player._id,
+      },
+    });
 
-  await player.updateOne({
-    status: PlayerStatus.REMOVED
-  });
-};
+    await player.updateOne({
+      status: PlayerStatus.REMOVED,
+    });
+  };
+
+  static updateState = async ({ game }: { game: IGameDocument }) => {};
+}

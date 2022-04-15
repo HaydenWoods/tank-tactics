@@ -1,9 +1,11 @@
 import { ColorResolvable } from "discord.js";
 
+import { Item, ItemConfig } from "@/types/shop";
+
 export interface Config {
   mongo: {
     url: string;
-  },
+  };
   bot: {
     token?: string;
     applicationId?: string;
@@ -11,7 +13,7 @@ export interface Config {
   };
   commands: {
     guildId?: string;
-  },
+  };
   game: {
     // Board
     xSize: number;
@@ -28,7 +30,6 @@ export interface Config {
     defaultRange: number;
 
     // Shop
-    rangeCost: number;
-    healthCost: number;
+    items: Partial<Record<Item, ItemConfig>>;
   };
 }
