@@ -52,7 +52,7 @@ export const getPlayerDescription = ({
 
   const playerDescription = playerInfo
     .map((item) => {
-      return `${item.title} ${item.value}`;
+      return `${item.title}  ${item.value}`;
     })
     .join("\n");
 

@@ -1,3 +1,5 @@
+import pino from "pino";
+
 import { Command, CommandController } from "@/types/command";
 
 import { GameService } from "@/services/game";
@@ -6,6 +8,8 @@ import { config } from "@/config";
 import { UserService } from "@/services/user";
 import { PlayerService } from "@/services/player";
 import { buildBoardEmbed } from "@/helpers/messages";
+
+const logger = pino();
 
 export class GameController {
   static create: CommandController = async (
@@ -22,25 +26,18 @@ export class GameController {
       throw new Error("Game already exists within this text channel");
     }
 
-    const createdGame = await GameService.create({
+    await GameService.create({
       guildId,
       channelId,
       user: actionUser,
     });
 
-    await interaction.reply(`Tank Tactics game has been created.`);
-
-    await GameService.addPlayer({
-      game: createdGame,
-      user: actionUser,
-    });
-
-    await interaction.followUp(`${actionUser.username} was added to the game.`);
+    await interaction.reply("Game has been created.");
   };
 
   static start: CommandController = async (
     interaction,
-    { game, isGameOwner }
+    { agenda, game, isGameOwner }
   ) => {
     if (!game) {
       throw new Error("Game doesn't exist in this channel");
@@ -60,7 +57,7 @@ export class GameController {
       );
     }
 
-    await GameService.start({ game });
+    await GameService.start({ game, agenda });
 
     await interaction.reply("Game has been started");
   };
@@ -80,6 +77,69 @@ export class GameController {
     await GameService.cancel({ game });
 
     await interaction.reply("Game has been cancelled");
+  };
+
+  static join: CommandController = async (
+    interaction,
+    { game, actionUser }
+  ) => {
+    if (!game) {
+      throw new Error("Game does not exist");
+    }
+
+    if (game.status !== GameStatus.SETUP) {
+      throw new Error("Game is not in setup");
+    }
+
+    if (game.players.length >= config.game.maximumPlayers) {
+      throw new Error(
+        `Game has a maximum of ${config.game.maximumPlayers} players`
+      );
+    }
+
+    if (interaction.user.bot) {
+      throw new Error("Bots are unable to join");
+    }
+
+    const doesExist = await PlayerService.findPlayerByGameAndDiscordId({
+      gameId: game._id,
+      discordId: actionUser.discordId,
+    });
+
+    if (doesExist) {
+      throw Error("You already exist in this game");
+    }
+
+    const emoji = interaction.options.get("emoji")?.value as string;
+
+    await GameService.addPlayer({
+      game,
+      user: actionUser,
+      emoji,
+    });
+
+    await interaction.reply(`${actionUser.username} has joined the game.`);
+  };
+
+  static leave: CommandController = async (
+    interaction,
+    { game, actionPlayer }
+  ) => {
+    if (!game) {
+      throw new Error("Game doesn't exist in this channel");
+    }
+
+    if (game.status !== GameStatus.SETUP) {
+      throw new Error("Game is not in setup");
+    }
+
+    if (!actionPlayer) {
+      throw new Error("You do not exist in the game");
+    }
+
+    await GameService.removePlayer({ game, player: actionPlayer });
+
+    await interaction.reply(`${actionPlayer.user.username} has left the game.`);
   };
 
   static addPlayer: CommandController = async (
@@ -117,6 +177,7 @@ export class GameController {
     const targetUser = await UserService.upsertUser({
       discordUser: targetDiscordUser,
     });
+
     const doesExist = await PlayerService.findPlayerByGameAndDiscordId({
       gameId: game._id,
       discordId: targetDiscordUser.id,
@@ -126,9 +187,12 @@ export class GameController {
       throw Error(`${targetUser.username} already exists in this game`);
     }
 
+    const emoji = interaction.options.get("emoji")?.value as string;
+
     await GameService.addPlayer({
       game,
       user: targetUser,
+      emoji,
     });
 
     await interaction.reply(
@@ -187,9 +251,7 @@ export class GameController {
       throw new Error("Game is not in progress");
     }
 
-    const { players } = game;
-
-    const embed = buildBoardEmbed({ players });
+    const embed = buildBoardEmbed({ game });
 
     interaction.reply({ embeds: [embed] });
   };

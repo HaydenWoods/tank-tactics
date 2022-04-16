@@ -2,7 +2,7 @@ import { Config } from "@/types/config";
 
 export const config: Config = {
   mongo: {
-    url: "mongodb://mongo:27017/tank-tactics",
+    url: "mongodb://mongo:27017",
   },
   bot: {
     token: process.env.BOT_TOKEN,
@@ -13,9 +13,15 @@ export const config: Config = {
     guildId: process.env.GUILD_ID,
   },
   game: {
-    // Board
-    xSize: 12,
-    ySize: 8,
+    board: {
+      cellsPerPlayer: 9,
+      ratio: 1.33,
+      ratioOffset: 0.17,
+    },
+
+    intervals: {
+      actionPoints: "minute",
+    },
 
     // Players
     minimumPlayers: 1,

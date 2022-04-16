@@ -1,7 +1,5 @@
-import { FilterQuery, QueryOptions } from "mongoose";
+import { FilterQuery } from "mongoose";
 import { random } from "lodash";
-
-import { config } from "@/config";
 
 import { GameStatus } from "@/types/game";
 import { PlayerStatus } from "@/types/player";
@@ -11,6 +9,8 @@ import { IPlayerDocument, Player } from "@/models/player";
 import { IUserDocument } from "@/models/user";
 
 import { getAllPositions } from "@/helpers/game";
+import { getBoardDimensions } from "@/helpers/board";
+import Agenda from "agenda";
 
 export class GameService {
   static create = async ({
@@ -34,13 +34,16 @@ export class GameService {
   static addPlayer = async ({
     game,
     user,
+    emoji,
   }: {
     game: IGameDocument;
     user: IUserDocument;
+    emoji?: IPlayerDocument["emoji"];
   }) => {
     const player = await Player.create({
       user: user._id,
       game: game._id,
+      emoji,
     });
 
     await game.updateOne({
@@ -53,14 +56,28 @@ export class GameService {
   };
 
   static findGame = async ({
+    id,
     channelId,
     statuses,
   }: {
-    channelId: IGameDocument["channelId"];
+    id?: IGameDocument["id"];
+    channelId?: IGameDocument["channelId"];
     statuses: GameStatus[];
   }) => {
+    if (!id && !channelId) return undefined;
+
+    const filter: FilterQuery<IGameDocument> = {};
+
+    if (id) {
+      filter["_id"] = id;
+    }
+
+    if (channelId) {
+      filter["channelId"] = channelId;
+    }
+
     const game = await Game.findOne({
-      channelId,
+      ...filter,
       $or: statuses.map((status) => ({ status })),
     }).populate({
       path: "players",
@@ -72,24 +89,52 @@ export class GameService {
     return game;
   };
 
-  static start = async ({ game }: { game: IGameDocument }) => {
-    await game.updateOne({
-      status: GameStatus.IN_PROGRESS,
+  static start = async ({
+    game,
+    agenda,
+  }: {
+    game: IGameDocument;
+    agenda: Agenda;
+  }) => {
+    const dimensions = getBoardDimensions({
+      playersCount: game.players.length,
     });
 
-    let allCoordinates = getAllPositions({
-      xSize: config.game.xSize,
-      ySize: config.game.ySize,
+    const updatedGame = await Game.findOneAndUpdate(
+      {
+        _id: game._id,
+      },
+      {
+        status: GameStatus.IN_PROGRESS,
+        config: {
+          width: dimensions[0],
+          height: dimensions[1],
+        },
+      },
+      {
+        returnDocument: "after",
+      }
+    );
+
+    if (!updatedGame) {
+      throw new Error("Unable to update game");
+    }
+
+    let allPositions = getAllPositions({
+      width: updatedGame.config.width,
+      height: updatedGame.config.height,
     });
 
     game.players.forEach(async (_id: IPlayerDocument["_id"]) => {
-      const randomCoordinateIndex = random(0, allCoordinates.length, false);
-      const randomCoordinate = allCoordinates[randomCoordinateIndex];
+      const randomCoordinateIndex = random(0, allPositions.length, false);
+      const randomCoordinate = allPositions[randomCoordinateIndex];
 
-      allCoordinates.splice(randomCoordinateIndex, 1);
+      allPositions.splice(randomCoordinateIndex, 1);
 
       await Player.updateOne({ _id }, { position: randomCoordinate });
     });
+
+    agenda.now("actionPoints", { gameId: game._id });
   };
 
   static cancel = async ({ game }: { game: IGameDocument }) => {
@@ -116,5 +161,22 @@ export class GameService {
     });
   };
 
-  static updateState = async ({ game }: { game: IGameDocument }) => {};
+  static getWinner = async ({ game }: { game: IGameDocument }) => {
+    const alivePlayers = game.players.filter(
+      ({ status }) => status === PlayerStatus.ALIVE
+    ) as IPlayerDocument[];
+
+    let winningPlayer;
+
+    if (alivePlayers.length === 1) {
+      winningPlayer = alivePlayers[0];
+
+      await game.updateOne({
+        status: GameStatus.FINISHED,
+        winner: winningPlayer._id,
+      });
+    }
+
+    return { winningPlayer };
+  };
 }

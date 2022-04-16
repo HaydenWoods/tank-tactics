@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import pino from "pino";
 import { Client } from "discord.js";
+import Agenda from "agenda";
 
 import { config } from "@/config";
 import { commands } from "@/commands";
@@ -14,7 +15,7 @@ import { UserService } from "@/services/user";
 const logger = pino();
 
 mongoose.connect(
-  config.mongo.url,
+  `${config.mongo.url}/tank-tactics`,
   {
     useCreateIndex: true,
     useNewUrlParser: true,
@@ -30,6 +31,16 @@ mongoose.connect(
     logger.info("Database connected");
   }
 );
+
+const agenda = new Agenda({
+  db: {
+    address: `${config.mongo.url}/agenda`,
+  },
+});
+
+agenda.start().then(async () => {
+  (await import("@/jobs/actionPoints")).default(agenda);
+});
 
 export const client = new Client({
   intents: ["GUILDS", "GUILD_MESSAGES", "DIRECT_MESSAGES"],
@@ -56,7 +67,7 @@ client.on("interactionCreate", async (interaction) => {
 
     const { channelId } = interaction;
 
-    const game =
+    let game =
       (await GameService.findGame({
         channelId,
         statuses: [GameStatus.IN_PROGRESS, GameStatus.SETUP],
@@ -77,12 +88,31 @@ client.on("interactionCreate", async (interaction) => {
       : undefined;
 
     await command.controller(interaction, {
+      agenda,
       game,
       isGameOwner,
       actionUser,
       actionPlayer,
     });
+
+    if (game) {
+      game =
+        (await GameService.findGame({
+          channelId,
+          statuses: [GameStatus.IN_PROGRESS],
+        })) ?? undefined;
+
+      if (!game) return;
+
+      const { winningPlayer } = await GameService.getWinner({ game });
+
+      if (winningPlayer) {
+        await interaction.followUp(`${winningPlayer?.user.username} has won!`);
+      }
+    }
   } catch (error) {
+    logger.error(error);
+
     return interaction.reply({
       content: `${(error as Error)?.message || "Unknown error has occured"}.`,
       ephemeral: true,

@@ -178,9 +178,9 @@ export class PlayerService {
     }
 
     if (
-      position.y > config.game.ySize ||
+      position.y > game.config.height ||
       position.y <= 0 ||
-      position.x > config.game.xSize ||
+      position.x > game.config.width ||
       position.x <= 0
     ) {
       throw new Error("New position is out of bounds");
@@ -195,11 +195,64 @@ export class PlayerService {
       throw new Error("Can't move to a populated position");
     }
 
-    const actionPlayerActionPoints = actionPlayer.actionPoints - actualAmount;
+    await actionPlayer.updateOne({
+      position,
+      actionPoints: actionPlayer.actionPoints - actualAmount,
+    });
+  };
+
+  static moveCoordinates = async ({
+    actionPlayer,
+    game,
+    x,
+    y,
+  }: {
+    actionPlayer: IPlayerDocument;
+    game: IGameDocument;
+    x: number;
+    y: number;
+  }) => {
+    if (!isPlayerAlive({ player: actionPlayer })) {
+      throw new Error("You are dead or don't exist in the game");
+    }
+
+    const position: IPlayerDocument["position"] = {
+      x,
+      y,
+    };
+
+    if (
+      position.y > game.config.height ||
+      position.y <= 0 ||
+      position.x > game.config.width ||
+      position.x <= 0
+    ) {
+      throw new Error("New position is out of bounds");
+    }
+
+    const playerPositions = game.players.map((player) => player.position);
+    const doesMatchOtherPlayer = playerPositions.find((otherPlayerPosition) =>
+      positionMatch(position, otherPlayerPosition)
+    );
+
+    if (doesMatchOtherPlayer) {
+      throw new Error("Can't move to a populated position");
+    }
+
+    const distance = Math.sqrt(
+      Math.pow(actionPlayer.position.x - position.x, 2) +
+        Math.pow(actionPlayer.position.y - position.y, 2)
+    );
+
+    const cost = Math.floor(distance);
+
+    if (actionPlayer.actionPoints < cost) {
+      throw new Error("You do not have enough action points");
+    }
 
     await actionPlayer.updateOne({
       position,
-      actionPoints: actionPlayerActionPoints,
+      actionPoints: actionPlayer.actionPoints - cost,
     });
   };
 

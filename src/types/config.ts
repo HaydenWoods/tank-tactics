@@ -1,3 +1,4 @@
+import { DateTimeUnit } from "luxon";
 import { ColorResolvable } from "discord.js";
 
 import { Item, ItemConfig } from "@/types/shop";
@@ -15,9 +16,15 @@ export interface Config {
     guildId?: string;
   };
   game: {
-    // Board
-    xSize: number;
-    ySize: number;
+    board: {
+      cellsPerPlayer: number;
+      ratio: number;
+      ratioOffset: number;
+    };
+
+    intervals: {
+      actionPoints: DateTimeUnit;
+    };
 
     // Players
     minimumPlayers: number;

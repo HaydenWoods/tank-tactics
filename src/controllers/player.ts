@@ -27,19 +27,38 @@ export class PlayerController {
       throw new Error("You do not exist within this game");
     }
 
-    const direction = interaction.options.get("direction")?.value as Direction;
-    const amount = (interaction.options.get("amount")?.value || 1) as number;
+    const type = interaction.options.getSubcommand() as string;
 
-    await PlayerService.moveDirection({
-      actionPlayer,
-      game,
-      direction,
-      amount,
-    });
+    if (type === "direction") {
+      const direction = interaction.options.get("direction")
+        ?.value as Direction;
+      const amount = (interaction.options.get("amount")?.value || 1) as number;
 
-    await interaction.reply(
-      `${actionPlayer.user.username} has moved ${direction} ${amount} times`
-    );
+      await PlayerService.moveDirection({
+        actionPlayer,
+        game,
+        direction,
+        amount,
+      });
+
+      await interaction.reply(
+        `${actionPlayer.user.username} has moved ${direction} ${amount} times`
+      );
+    } else if (type === "coordinates") {
+      const x = interaction.options.get("x")?.value as number;
+      const y = interaction.options.get("y")?.value as number;
+
+      await PlayerService.moveCoordinates({
+        actionPlayer,
+        game,
+        x,
+        y,
+      });
+
+      await interaction.reply(
+        `${actionPlayer.user.username} has move to position ${x}, ${y}`
+      );
+    }
   };
 
   static shoot: CommandController = async (
@@ -183,66 +202,6 @@ export class PlayerController {
     interaction.reply(
       `${actionPlayer.user.username} has bought ${amount} ${item}`
     );
-  };
-
-  static join: CommandController = async (
-    interaction,
-    { game, actionUser }
-  ) => {
-    if (!game) {
-      throw new Error("Game does not exist");
-    }
-
-    if (game.status !== GameStatus.SETUP) {
-      throw new Error("Game is not in setup");
-    }
-
-    if (game.players.length >= config.game.maximumPlayers) {
-      throw new Error(
-        `Game has a maximum of ${config.game.maximumPlayers} players`
-      );
-    }
-
-    if (interaction.user.bot) {
-      throw new Error("Bots are unable to join");
-    }
-
-    const doesExist = await PlayerService.findPlayerByGameAndDiscordId({
-      gameId: game._id,
-      discordId: actionUser.discordId,
-    });
-
-    if (doesExist) {
-      throw Error("You already exist in this game");
-    }
-
-    await GameService.addPlayer({
-      game,
-      user: actionUser,
-    });
-
-    await interaction.reply(`${actionUser.username} has joined the game.`);
-  };
-
-  static leave: CommandController = async (
-    interaction,
-    { game, actionPlayer }
-  ) => {
-    if (!game) {
-      throw new Error("Game doesn't exist in this channel");
-    }
-
-    if (game.status !== GameStatus.SETUP) {
-      throw new Error("Game is not in setup");
-    }
-
-    if (!actionPlayer) {
-      throw new Error("You do not exist in the game");
-    }
-
-    await GameService.removePlayer({ game, player: actionPlayer });
-
-    await interaction.reply(`${actionPlayer.user.username} has left the game.`);
   };
 
   static displayMe: CommandController = async (

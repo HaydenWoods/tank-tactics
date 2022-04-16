@@ -4,44 +4,63 @@ import { Command } from "@/types/command";
 export const commands: Command[] = [
   {
     meta: {
-      name: "join",
-      description: "Join the game",
-    },
-    controller: PlayerController.join,
-  },
-  {
-    meta: {
       name: "move",
       description: "Move your player",
       options: [
         {
-          type: 3,
-          name: "direction",
-          description: "The direction to move",
-          choices: [
+          name: "coordinates",
+          description: "Move via coordinates",
+          type: 1,
+          options: [
             {
-              name: "up",
-              value: "up",
+              name: "x",
+              description: "The x position",
+              type: 4,
+              required: true,
             },
             {
-              name: "down",
-              value: "down",
-            },
-            {
-              name: "left",
-              value: "left",
-            },
-            {
-              name: "right",
-              value: "right",
+              name: "y",
+              description: "The y position",
+              type: 4,
+              required: true,
             },
           ],
-          required: true,
         },
         {
-          type: 4,
-          name: "amount",
-          description: "The amount in that direction to move",
+          name: "direction",
+          description: "Move via direction",
+          type: 1,
+          options: [
+            {
+              type: 3,
+              name: "direction",
+              description: "The direction to move",
+              choices: [
+                {
+                  name: "up",
+                  value: "up",
+                },
+                {
+                  name: "down",
+                  value: "down",
+                },
+                {
+                  name: "left",
+                  value: "left",
+                },
+                {
+                  name: "right",
+                  value: "right",
+                },
+              ],
+              required: true,
+            },
+            {
+              type: 4,
+              name: "amount",
+              description: "The amount in that direction to move",
+            },
+          ],
         },
       ],
     },
@@ -134,13 +153,6 @@ export const commands: Command[] = [
       ],
     },
     controller: PlayerController.buy,
-  },
-  {
-    meta: {
-      name: "leave",
-      description: "Leave the game",
-    },
-    controller: PlayerController.leave,
   },
   {
     meta: {

@@ -26,6 +26,28 @@ export const commands: Command[] = [
   },
   {
     meta: {
+      name: "join",
+      description: "Join the game",
+      options: [
+        {
+          type: 3,
+          name: "emoji",
+          description: "The emoji for your player",
+          required: true,
+        },
+      ],
+    },
+    controller: GameController.join,
+  },
+  {
+    meta: {
+      name: "leave",
+      description: "Leave the game",
+    },
+    controller: GameController.leave,
+  },
+  {
+    meta: {
       name: "add",
       description:
         "Add a new player to the game, only able to be executed during game setup",
@@ -34,6 +56,12 @@ export const commands: Command[] = [
           type: 6,
           name: "player",
           description: "The player to add",
+          required: true,
+        },
+        {
+          type: 3,
+          name: "emoji",
+          description: "The players emoji",
           required: true,
         },
       ],

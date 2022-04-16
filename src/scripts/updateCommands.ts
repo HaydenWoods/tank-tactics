@@ -15,7 +15,7 @@ export const index = async () => {
   const { guildId } = config.commands;
 
   logger.info("Updating commands");
-  logger.info("Scope: ", guildId ? "Guild" : "Global");
+  logger.info({ scope: guildId ? "Guild" : "Global", guildId });
 
   if (!token || !applicationId) {
     throw new Error("No token or application id");
@@ -24,11 +24,11 @@ export const index = async () => {
   const client = new Client(token, applicationId);
 
   for (const command of commands) {
-    logger.info("Command", { command });
+    logger.info({ command }, "Command");
 
     const updatedCommand = await client.createCommand(command.meta, guildId);
 
-    logger.info("Updated command > ", { updatedCommand });
+    logger.info({ updatedCommand }, "Updated command");
 
     await sleep(5000);
   }

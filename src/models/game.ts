@@ -1,4 +1,4 @@
-import { model, Document, Schema, PopulatedDoc, Model } from "mongoose";
+import { model, Document, Schema, PopulatedDoc } from "mongoose";
 
 import { GameStatus } from "@/types/game";
 
@@ -12,6 +12,13 @@ export interface IGame {
   user: string;
   players: PopulatedDoc<IPlayerDocument, IPlayerDocument["_id"]>[];
   histories: IHistory[];
+  config: {
+    width: number;
+    height: number;
+  };
+  nextInvokation: {
+    actionPoints: string;
+  };
 }
 
 export interface IGameDocument extends IGame, Document {}
@@ -24,6 +31,13 @@ export const GameSchema = new Schema<IGameDocument>(
     user: { type: Schema.Types.ObjectId, ref: "User" },
     players: [{ type: Schema.Types.ObjectId, ref: "Player" }],
     histories: [HistorySchema],
+    config: {
+      width: { type: Schema.Types.Number },
+      height: { type: Schema.Types.Number },
+    },
+    nextInvokation: {
+      actionPoints: { type: Schema.Types.Date },
+    },
   },
   {
     timestamps: true,

@@ -2,23 +2,23 @@ import { EmbedField, MessageEmbed } from "discord.js";
 
 import { config } from "@/config";
 
-import { BLANK_EMOJI, FIELDS_PER_ROW, PLAYER_EMOJIS } from "@/constants/board";
+import { BLANK_EMOJI, FIELDS_PER_ROW } from "@/constants/board";
 
 import { IPlayerDocument } from "@/models/player";
 
 import { getPlayerDescription } from "@/helpers/player";
 import { getAllPositions, positionMatch } from "@/helpers/game";
-import { PlayerStatus } from "@/types/player";
+import { IGameDocument } from "@/models/game";
 
-export const buildPlayerInfoEmbed = ({ 
-  player, 
+export const buildPlayerInfoEmbed = ({
+  player,
   showPrivate,
-}: { 
+}: {
   player: IPlayerDocument;
   showPrivate?: boolean;
 }) => {
-  const playerDescription = getPlayerDescription({ 
-    player, 
+  const playerDescription = getPlayerDescription({
+    player,
     showPrivate,
   });
 
@@ -28,25 +28,17 @@ export const buildPlayerInfoEmbed = ({
     .setDescription(playerDescription);
 };
 
-export const buildBoardEmbed = ({
-  players,
-}: {
-  players: IPlayerDocument[]
-}) => {
-  const alivePlayers = players.filter((player) => player.status === PlayerStatus.ALIVE);
-
-  const boardFields: EmbedField[] = alivePlayers.map((player, i) => {
-    const emoji = PLAYER_EMOJIS[i];
-    const name = `:${emoji}: ${player.user.username} `;
+export const buildBoardEmbed = ({ game }: { game: IGameDocument }) => {
+  const boardFields: EmbedField[] = game.players.map((player, i) => {
+    const name = `${player.emoji}  ${player.user.username} `;
     const value = getPlayerDescription({ player });
-    const inline = !((i + 1) % (FIELDS_PER_ROW + 1) === 0);
 
-    return { name, value, inline };
+    return { name, value, inline: true };
   });
 
-  const allPositions = getAllPositions({ 
-    xSize: config.game.xSize,
-    ySize: config.game.ySize,
+  const allPositions = getAllPositions({
+    width: game.config.width,
+    height: game.config.height,
   });
 
   const boardPositions = allPositions.map((position) => ({
@@ -55,15 +47,23 @@ export const buildBoardEmbed = ({
     emoji: BLANK_EMOJI,
   }));
 
-  alivePlayers.forEach((player, i) => {
-    const index = boardPositions.findIndex((position) => positionMatch(position, player.position));
-    boardPositions[index].emoji = PLAYER_EMOJIS[i];
+  game.players.forEach((player, i) => {
+    const index = boardPositions.findIndex((position) =>
+      positionMatch(position, player.position)
+    );
+
+    boardPositions[index].emoji = player.emoji;
   });
 
-  let boardDescription = boardPositions.reduce((boardDescription, boardPosition) => {
-    const isNewLine = boardPosition.x === config.game.xSize;
-    return `${boardDescription}:${boardPosition.emoji}:${isNewLine ? "\n" : ""}`;
-  }, "");
+  let boardDescription = boardPositions.reduce(
+    (boardDescription, boardPosition) => {
+      const isNewLine = boardPosition.x === game.config.width;
+      return `${boardDescription}${boardPosition.emoji}${
+        isNewLine ? "\n" : ""
+      }`;
+    },
+    ""
+  );
 
   boardDescription = `${boardDescription}\n**Players**`;
 
@@ -71,7 +71,7 @@ export const buildBoardEmbed = ({
     .setColor(config.bot.color)
     .setTitle("Board")
     .setDescription(boardDescription)
-    .setFields(boardFields)
+    .setFields(boardFields);
 };
 
 export const buildHelpEmbed = () => {
