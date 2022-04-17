@@ -2,10 +2,9 @@ import { config } from "@/config";
 
 import { CommandController } from "@/types/command";
 import { GameStatus } from "@/types/game";
-import { Direction } from "@/types/player";
+import { Direction, PlayerStatus } from "@/types/player";
 import { Item } from "@/types/shop";
 
-import { GameService } from "@/services/game";
 import { PlayerService } from "@/services/player";
 
 import { buildPlayerInfoEmbed } from "@/helpers/messages";
@@ -265,5 +264,56 @@ export class PlayerController {
     });
 
     await interaction.reply({ embeds: [embed] });
+  };
+
+  static vote: CommandController = async (
+    interaction,
+    { game, actionPlayer }
+  ) => {
+    if (!game) {
+      throw new Error("Game does not exist");
+    }
+
+    if (game.status !== GameStatus.IN_PROGRESS) {
+      throw new Error("Game is not in progress");
+    }
+
+    if (!actionPlayer) {
+      throw new Error("You do not exist in this game");
+    }
+
+    if (actionPlayer.status !== PlayerStatus.DEAD) {
+      throw new Error("Ineligble to vote as you are not dead");
+    }
+
+    const targetDiscordUser = interaction.options.get("player")?.user;
+
+    if (!targetDiscordUser) {
+      throw new Error("No target player given");
+    }
+
+    const targetPlayer = await PlayerService.findPlayerByGameAndDiscordId({
+      discordId: targetDiscordUser.id,
+      gameId: game._id,
+    });
+
+    if (!targetPlayer) {
+      throw new Error("Target player does not exist in this game");
+    }
+
+    if (targetPlayer.status !== PlayerStatus.ALIVE) {
+      throw new Error("Unable to vote for a player who not alive");
+    }
+
+    await PlayerService.vote({
+      game,
+      actionPlayer: actionPlayer,
+      targetPlayer: targetPlayer,
+    });
+
+    await interaction.reply({
+      content: `You have voted for ${targetPlayer.user.username}`,
+      ephemeral: true,
+    });
   };
 }

@@ -11,6 +11,11 @@ import { IUserDocument } from "@/models/user";
 import { getAllPositions } from "@/helpers/game";
 import { getBoardDimensions } from "@/helpers/board";
 import Agenda from "agenda";
+import {
+  GameIteration,
+  IGameIteration,
+  IGameIterationDocument,
+} from "@/models/gameIteration";
 
 export class GameService {
   static create = async ({
@@ -134,7 +139,7 @@ export class GameService {
       await Player.updateOne({ _id }, { position: randomCoordinate });
     });
 
-    agenda.now("actionPoints", { gameId: game._id });
+    agenda.now("game:iterate", { id: game._id });
   };
 
   static cancel = async ({ game }: { game: IGameDocument }) => {
@@ -178,5 +183,15 @@ export class GameService {
     }
 
     return { winningPlayer };
+  };
+
+  static getCurrentIteration = async ({ game }: { game: IGameDocument }) => {
+    const currentIteration = ((
+      await GameIteration.find({ game: game._id })
+        .sort({ createdAt: -1 })
+        .limit(1)
+    )?.[0] ?? undefined) as IGameIterationDocument | undefined;
+
+    return currentIteration;
   };
 }

@@ -19,19 +19,21 @@ export const config: Config = {
       ratioOffset: 0.17,
     },
 
+    iterationInterval: "minute",
+
     intervals: {
       actionPoints: "minute",
     },
 
     // Players
-    minimumPlayers: 1,
+    minimumPlayers: 2,
     maximumPlayers: 96,
 
     // Health
-    defaultHealth: 3,
+    initialHealth: 3,
 
     // Range
-    defaultRange: 2,
+    initialRange: 2,
 
     // Shop
     items: {

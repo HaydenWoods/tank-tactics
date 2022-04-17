@@ -1,19 +1,25 @@
-import pino from "pino";
-
 import { config } from "@/config";
 
 import { factors } from "@/helpers/general";
+import { Config } from "@/types/config";
 
-const logger = pino();
-
-export const getBoardDimensions = ({
-  playersCount,
-}: {
+export const getBoardDimensions = (params: {
   playersCount: number;
+  cellsPerPlayer?: Config["game"]["board"]["cellsPerPlayer"];
+  ratio?: Config["game"]["board"]["ratio"];
+  ratioOffset?: Config["game"]["board"]["ratioOffset"];
 }) => {
+  // Default values
+  const { playersCount, cellsPerPlayer, ratio, ratioOffset } = {
+    cellsPerPlayer: config.game.board.cellsPerPlayer,
+    ratio: config.game.board.ratio,
+    ratioOffset: config.game.board.ratioOffset,
+    ...params,
+  };
+
   let dimensions: [number, number] = [0, 0];
 
-  let boardArea = playersCount * config.game.board.cellsPerPlayer;
+  let boardArea = playersCount * cellsPerPlayer;
 
   while (true) {
     const boardAreaSquareRoot = Math.sqrt(boardArea);
@@ -28,8 +34,7 @@ export const getBoardDimensions = ({
 
     boardWidths.forEach((width) => {
       const height = boardArea / width;
-      const ratio = width / height;
-      const ratioDiff = Math.abs(config.game.board.ratio - ratio);
+      const ratioDiff = Math.abs(ratio - width / height);
 
       if (ratioDiff < closestRatioDiff) {
         closestRatioDiff = ratioDiff;
@@ -37,7 +42,7 @@ export const getBoardDimensions = ({
       }
     });
 
-    if (closestRatioDiff < config.game.board.ratioOffset) {
+    if (closestRatioDiff < ratioOffset) {
       dimensions = closestDimensions;
       break;
     } else {

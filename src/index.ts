@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 import pino from "pino";
 import { Client } from "discord.js";
-import Agenda from "agenda";
+import Agenda, { Job } from "agenda";
 
 import { config } from "@/config";
 import { commands } from "@/commands";
@@ -39,7 +39,13 @@ const agenda = new Agenda({
 });
 
 agenda.start().then(async () => {
-  (await import("@/jobs/actionPoints")).default(agenda);
+  (await import("@/jobs/game/iterate")).default(agenda);
+  (await import("@/jobs/game/assignActionPoints")).default(agenda);
+  (await import("@/jobs/game/votingOpens")).default(agenda);
+});
+
+agenda.on("fail", (error: Error, job: Job) => {
+  logger.error({ error, data: job.attrs.data }, `${job.attrs.name} errored`);
 });
 
 export const client = new Client({
@@ -95,21 +101,21 @@ client.on("interactionCreate", async (interaction) => {
       actionPlayer,
     });
 
-    if (game) {
-      game =
-        (await GameService.findGame({
-          channelId,
-          statuses: [GameStatus.IN_PROGRESS],
-        })) ?? undefined;
+    // if (game) {
+    //   game =
+    //     (await GameService.findGame({
+    //       channelId,
+    //       statuses: [GameStatus.IN_PROGRESS],
+    //     })) ?? undefined;
 
-      if (!game) return;
+    //   if (!game) return;
 
-      const { winningPlayer } = await GameService.getWinner({ game });
+    //   const { winningPlayer } = await GameService.getWinner({ game });
 
-      if (winningPlayer) {
-        await interaction.followUp(`${winningPlayer?.user.username} has won!`);
-      }
-    }
+    //   if (winningPlayer) {
+    //     await interaction.followUp(`${winningPlayer?.user.username} has won!`);
+    //   }
+    // }
   } catch (error) {
     logger.error(error);
 

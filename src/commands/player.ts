@@ -176,4 +176,19 @@ export const commands: Command[] = [
     },
     controller: PlayerController.displayMe,
   },
+  {
+    meta: {
+      name: "vote",
+      description: "Vote for a player",
+      options: [
+        {
+          type: 6,
+          name: "player",
+          description: "The player to vote for",
+          required: true,
+        },
+      ],
+    },
+    controller: PlayerController.vote,
+  },
 ];

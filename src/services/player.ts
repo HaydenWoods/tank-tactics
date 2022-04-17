@@ -1,16 +1,22 @@
 import { FilterQuery, QueryOptions } from "mongoose";
+import { DateTime } from "luxon";
+import pino from "pino";
 
 import { config } from "@/config";
 
 import { Direction, PlayerStatus } from "@/types/player";
+import { Item } from "@/types/shop";
 
 import { IGameDocument } from "@/models/game";
 import { IPlayerDocument, Player } from "@/models/player";
 import { User, IUserDocument } from "@/models/user";
+import { GameIteration, IGameIterationDocument } from "@/models/gameIteration";
+import { PlayerVote } from "@/models/playerVote";
 
 import { isPlayerAlive, isPlayerInRange } from "@/helpers/player";
 import { positionMatch } from "@/helpers/game";
-import { Item } from "@/types/shop";
+
+const logger = pino();
 
 export class PlayerService {
   static findPlayer = (
@@ -141,6 +147,38 @@ export class PlayerService {
     };
   };
 
+  static setPosition = async ({
+    game,
+    player,
+    position,
+  }: {
+    game: IGameDocument;
+    player: IPlayerDocument;
+    position: IPlayerDocument["position"];
+  }) => {
+    if (
+      position.y > game.config.height ||
+      position.y <= 0 ||
+      position.x > game.config.width ||
+      position.x <= 0
+    ) {
+      throw new Error("New position is out of bounds");
+    }
+
+    const playerPositions = game.players.map((player) => player.position);
+    const doesMatchOtherPlayer = playerPositions.find((otherPlayerPosition) =>
+      positionMatch(position, otherPlayerPosition)
+    );
+
+    if (doesMatchOtherPlayer) {
+      throw new Error("Can't move to a populated position");
+    }
+
+    await player.updateOne({
+      position,
+    });
+  };
+
   static moveDirection = async ({
     actionPlayer,
     game,
@@ -177,26 +215,13 @@ export class PlayerService {
       position.x = position.x + actualAmount;
     }
 
-    if (
-      position.y > game.config.height ||
-      position.y <= 0 ||
-      position.x > game.config.width ||
-      position.x <= 0
-    ) {
-      throw new Error("New position is out of bounds");
-    }
-
-    const playerPositions = game.players.map((player) => player.position);
-    const doesMatchOtherPlayer = playerPositions.find((otherPlayerPosition) =>
-      positionMatch(position, otherPlayerPosition)
-    );
-
-    if (doesMatchOtherPlayer) {
-      throw new Error("Can't move to a populated position");
-    }
+    await PlayerService.setPosition({
+      game,
+      player: actionPlayer,
+      position,
+    });
 
     await actionPlayer.updateOne({
-      position,
       actionPoints: actionPlayer.actionPoints - actualAmount,
     });
   };
@@ -221,24 +246,6 @@ export class PlayerService {
       y,
     };
 
-    if (
-      position.y > game.config.height ||
-      position.y <= 0 ||
-      position.x > game.config.width ||
-      position.x <= 0
-    ) {
-      throw new Error("New position is out of bounds");
-    }
-
-    const playerPositions = game.players.map((player) => player.position);
-    const doesMatchOtherPlayer = playerPositions.find((otherPlayerPosition) =>
-      positionMatch(position, otherPlayerPosition)
-    );
-
-    if (doesMatchOtherPlayer) {
-      throw new Error("Can't move to a populated position");
-    }
-
     const distance = Math.sqrt(
       Math.pow(actionPlayer.position.x - position.x, 2) +
         Math.pow(actionPlayer.position.y - position.y, 2)
@@ -250,8 +257,13 @@ export class PlayerService {
       throw new Error("You do not have enough action points");
     }
 
-    await actionPlayer.updateOne({
+    await PlayerService.setPosition({
+      game,
+      player: actionPlayer,
       position,
+    });
+
+    await actionPlayer.updateOne({
       actionPoints: actionPlayer.actionPoints - cost,
     });
   };
@@ -368,6 +380,50 @@ export class PlayerService {
     await player.updateOne({
       actionPoints: playerActionPoints,
       [item]: playerItems,
+    });
+  };
+
+  static vote = async ({
+    game,
+    actionPlayer,
+    targetPlayer,
+  }: {
+    game: IGameDocument;
+    actionPlayer: IPlayerDocument;
+    targetPlayer: IPlayerDocument;
+  }) => {
+    const now = DateTime.now();
+
+    const iteration = ((
+      await GameIteration.find({
+        game: game._id,
+        "events.votingOpens": { $lt: now.toJSDate() },
+      })
+        .sort({ createdAt: -1 })
+        .limit(1)
+    )?.[0] ?? undefined) as IGameIterationDocument | undefined;
+
+    if (!iteration) {
+      throw new Error("Unable to find latest iteration where voting is open");
+    }
+
+    const existingVote = await PlayerVote.findOne({
+      game: game._id,
+      iteration: iteration._id,
+      player: actionPlayer._id,
+    });
+
+    if (existingVote) {
+      throw new Error("You have already voted");
+    }
+
+    logger.info({ iteration: iteration?.toObject() }, "Voting via iteration");
+
+    await PlayerVote.create({
+      game: game._id,
+      iteration: iteration?._id,
+      player: actionPlayer._id,
+      target: targetPlayer._id,
     });
   };
 }

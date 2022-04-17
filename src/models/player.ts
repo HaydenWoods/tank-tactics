@@ -23,8 +23,8 @@ export interface IPlayerDocument extends IPlayer, Document {}
 
 export const PlayerSchema = new Schema<IPlayerDocument>(
   {
-    user: { type: Schema.Types.ObjectId, required: true, ref: "User" },
-    game: { type: Schema.Types.ObjectId, required: true, ref: "Game" },
+    user: { type: Schema.Types.ObjectId, required: true, ref: "user" },
+    game: { type: Schema.Types.ObjectId, required: true, ref: "game" },
     emoji: { type: Schema.Types.String },
     status: {
       type: Schema.Types.String,
@@ -44,4 +44,4 @@ export const PlayerSchema = new Schema<IPlayerDocument>(
   }
 );
 
-export const Player = model<IPlayerDocument>("Player", PlayerSchema);
+export const Player = model<IPlayerDocument>("player", PlayerSchema);

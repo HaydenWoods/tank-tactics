@@ -22,6 +22,8 @@ export interface Config {
       ratioOffset: number;
     };
 
+    iterationInterval: DateTimeUnit;
+
     intervals: {
       actionPoints: DateTimeUnit;
     };
@@ -31,10 +33,10 @@ export interface Config {
     maximumPlayers: number;
 
     // Health
-    defaultHealth: number;
+    initialHealth: number;
 
     // Range
-    defaultRange: number;
+    initialRange: number;
 
     // Shop
     items: Partial<Record<Item, ItemConfig>>;
