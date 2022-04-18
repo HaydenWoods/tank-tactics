@@ -1,6 +1,6 @@
 import pino from "pino";
 
-import { Command, CommandController } from "@/types/command";
+import { CommandController } from "@/types/command";
 
 import { GameService } from "@/services/game";
 import { GameStatus } from "@/types/game";
@@ -112,18 +112,20 @@ export class GameController {
 
     const emoji = interaction.options.get("emoji")?.value as string;
 
-    await GameService.addPlayer({
+    const player = await GameService.addPlayer({
       game,
       user: actionUser,
       emoji,
     });
 
-    await interaction.reply(`${actionUser.username} has joined the game.`);
+    await interaction.reply(
+      `${emoji}<@${actionUser.discordId}> has joined the game.`
+    );
   };
 
   static leave: CommandController = async (
     interaction,
-    { game, actionPlayer }
+    { game, actionPlayer, actionUser }
   ) => {
     if (!game) {
       throw new Error("Game doesn't exist in this channel");
@@ -139,12 +141,14 @@ export class GameController {
 
     await GameService.removePlayer({ game, player: actionPlayer });
 
-    await interaction.reply(`${actionPlayer.user.username} has left the game.`);
+    await interaction.reply(
+      `${actionPlayer.emoji}<@${actionUser.discordId}> has left the game.`
+    );
   };
 
   static addPlayer: CommandController = async (
     interaction,
-    { game, isGameOwner, actionUser }
+    { game, isGameOwner, actionPlayer }
   ) => {
     if (!game) {
       throw new Error("Game does not exist");
@@ -184,7 +188,7 @@ export class GameController {
     });
 
     if (doesExist) {
-      throw Error(`${targetUser.username} already exists in this game`);
+      throw Error(`<@${targetUser.discordId}> already exists in this game`);
     }
 
     const emoji = interaction.options.get("emoji")?.value as string;
@@ -196,13 +200,13 @@ export class GameController {
     });
 
     await interaction.reply(
-      `${actionUser.username} has added ${targetUser.username} to the game.`
+      `${emoji}<@${targetUser.discordId}> has been added to the game.`
     );
   };
 
   static removePlayer: CommandController = async (
     interaction,
-    { game, isGameOwner, actionPlayer }
+    { game, isGameOwner, actionPlayer, actionUser }
   ) => {
     if (!game) {
       throw new Error("Game doesn't exist in this channel");
@@ -238,7 +242,7 @@ export class GameController {
     await GameService.removePlayer({ game, player: targetPlayer });
 
     await interaction.reply(
-      `${actionPlayer.user.username} has removed ${targetPlayer.user.username} from the game.`
+      `${targetPlayer.emoji}<@${targetPlayer.user.discordId}> has been removed from the game.`
     );
   };
 

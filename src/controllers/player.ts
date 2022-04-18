@@ -1,4 +1,8 @@
-import { config } from "@/config";
+import {
+  MessageActionRow,
+  MessageButton,
+  MessageButtonStyle,
+} from "discord.js";
 
 import { CommandController } from "@/types/command";
 import { GameStatus } from "@/types/game";
@@ -41,7 +45,7 @@ export class PlayerController {
       });
 
       await interaction.reply(
-        `${actionPlayer.user.username} has moved ${direction} ${amount} times`
+        `${actionPlayer.emoji}<@${actionPlayer.user.discordId}> has moved ${direction} ${amount} times`
       );
     } else if (type === "coordinates") {
       const x = interaction.options.get("x")?.value as number;
@@ -55,7 +59,7 @@ export class PlayerController {
       });
 
       await interaction.reply(
-        `${actionPlayer.user.username} has move to position ${x}, ${y}`
+        `${actionPlayer.emoji}<@${actionPlayer.user.discordId}> has move to position ${x}, ${y}`
       );
     }
   };
@@ -99,15 +103,19 @@ export class PlayerController {
     });
 
     await interaction.reply(
-      `${actionPlayer.user.username} has shot ${targetPlayer.user.username} ${
+      `${actionPlayer.emoji}<@${actionPlayer.user.discordId}> has shot ${
+        targetPlayer.emoji
+      }<@${targetPlayer.user.discordId}> ${
         actualAmount > 1 ? `${actualAmount} times` : ""
       }`
     );
 
     if (isNowDead) {
-      await interaction.followUp(`${targetPlayer.user.username} has died`);
       await interaction.followUp(
-        `${actionPlayer.user.username} has been awarded all of ${targetPlayer.user.username}'s action points`
+        `${targetPlayer.emoji}<@${targetPlayer.user.discordId}> has died`
+      );
+      await interaction.followUp(
+        `${actionPlayer.emoji}<@${actionPlayer.user.discordId}> has been awarded all of ${targetPlayer.emoji}<@${targetPlayer.user.discordId}>'s action points`
       );
     }
   };
@@ -155,23 +163,25 @@ export class PlayerController {
     if (item === Item.ACTION_POINTS) {
       await PlayerService.giveActionPoints(parameters);
       await interaction.reply(
-        `${actionPlayer.user.username} has given ${targetPlayer.user.username} ${amount} action points`
+        `${actionPlayer.emoji}<@${actionPlayer.user.discordId}> has given ${targetPlayer.emoji}<@${targetPlayer.user.discordId}> ${amount} action points`
       );
     } else if (item === Item.HEALTH) {
       const { isActionPlayerDead, isTargetPlayerAlive } =
         await PlayerService.giveHealth(parameters);
 
       await interaction.reply(
-        `${actionPlayer.user.username} has given ${targetPlayer.user.username} ${amount} health`
+        `${actionPlayer.emoji}<@${actionPlayer.user.discordId}> has given ${targetPlayer.emoji}<@${targetPlayer.user.discordId}> ${amount} health`
       );
 
       if (isActionPlayerDead) {
-        await interaction.followUp(`${actionPlayer.user.username} has died`);
+        await interaction.followUp(
+          `${actionPlayer.emoji}<@${actionPlayer.user.discordId}> has died`
+        );
       }
 
       if (isTargetPlayerAlive) {
         await interaction.followUp(
-          `${targetPlayer.user.username} has been revived`
+          `${targetPlayer.emoji}<@${targetPlayer.user.discordId}> has been revived`
         );
       }
     }
@@ -199,7 +209,7 @@ export class PlayerController {
     await PlayerService.buyItem({ player: actionPlayer, item, amount });
 
     interaction.reply(
-      `${actionPlayer.user.username} has bought ${amount} ${item}`
+      `${actionPlayer.emoji}<@${actionPlayer.user.discordId}> has bought ${amount} ${item}`
     );
   };
 
@@ -263,7 +273,17 @@ export class PlayerController {
       showPrivate: false,
     });
 
-    await interaction.reply({ embeds: [embed] });
+    // const row = new MessageActionRow().addComponents(
+    //   new MessageButton()
+    //     .setCustomId("shoot")
+    //     .setLabel("Shoot")
+    //     .setStyle("DANGER")
+    // );
+
+    await interaction.reply({
+      embeds: [embed],
+      // components: [row],
+    });
   };
 
   static vote: CommandController = async (
@@ -312,7 +332,7 @@ export class PlayerController {
     });
 
     await interaction.reply({
-      content: `You have voted for ${targetPlayer.user.username}`,
+      content: `You have voted for ${targetPlayer.emoji}<@${targetPlayer.user.discordId}>`,
       ephemeral: true,
     });
   };

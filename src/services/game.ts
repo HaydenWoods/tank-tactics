@@ -194,4 +194,14 @@ export class GameService {
 
     return currentIteration;
   };
+
+  static getPreviousIteration = async ({ game }: { game: IGameDocument }) => {
+    const previousIteration = ((
+      await GameIteration.find({ game: game._id })
+        .sort({ createdAt: -1 })
+        .limit(2)
+    )?.[1] ?? undefined) as IGameIterationDocument | undefined;
+
+    return previousIteration;
+  };
 }

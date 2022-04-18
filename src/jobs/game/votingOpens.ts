@@ -5,8 +5,6 @@ import { client } from "@/index";
 
 import { GameStatus } from "@/types/game";
 
-import { Player } from "@/models/player";
-
 import { GameService } from "@/services/game";
 
 const logger = pino();
@@ -36,6 +34,6 @@ export default (agenda: Agenda) => {
       );
     }
 
-    logger.info({ id }, "Assigned action points");
+    logger.info({ id }, "Voting has opened");
   });
 };

@@ -24,10 +24,6 @@ export interface Config {
 
     iterationInterval: DateTimeUnit;
 
-    intervals: {
-      actionPoints: DateTimeUnit;
-    };
-
     // Players
     minimumPlayers: number;
     maximumPlayers: number;

@@ -19,11 +19,7 @@ export const config: Config = {
       ratioOffset: 0.17,
     },
 
-    iterationInterval: "minute",
-
-    intervals: {
-      actionPoints: "minute",
-    },
+    iterationInterval: "hour",
 
     // Players
     minimumPlayers: 2,

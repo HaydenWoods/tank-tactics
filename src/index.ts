@@ -45,7 +45,7 @@ agenda.start().then(async () => {
 });
 
 agenda.on("fail", (error: Error, job: Job) => {
-  logger.error({ error, data: job.attrs.data }, `${job.attrs.name} errored`);
+  logger.error(error, `${job.attrs.name} errored`);
 });
 
 export const client = new Client({
@@ -113,7 +113,7 @@ client.on("interactionCreate", async (interaction) => {
     //   const { winningPlayer } = await GameService.getWinner({ game });
 
     //   if (winningPlayer) {
-    //     await interaction.followUp(`${winningPlayer?.user.username} has won!`);
+    //     await interaction.followUp(`<@${winningPlayer.user.discordId}> has won!`);
     //   }
     // }
   } catch (error) {

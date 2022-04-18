@@ -2,7 +2,6 @@ import { User as DiscordUser } from "discord.js";
 import { FilterQuery, QueryOptions } from "mongoose";
 
 import { User, IUser, IUserDocument } from "@/models/user";
-import { update } from "lodash";
 
 export class UserService {
   static findUser = (
